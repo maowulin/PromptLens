@@ -1,1 +1,51 @@
 .history
+
+# General
+*.log
+logs/
+*.tmp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor directories
+.vscode/
+.idea/
+
+# Node.js / Web
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/install-state.gz
+.yarn/build-state.yml
+dist/
+build/
+out/
+.cache/
+.temp/
+.tmp/
+*.tsbuildinfo
+.next/
+.nuxt/
+.svelte-kit/
+.vite/
+.vite-inspect/
+coverage/
+.nyc_output/
+
+# Rust
+/target/
+**/target/
+**/*.rs.bk
+
+# Tauri
+apps/desktop/tauri-app/src-tauri/target/
+apps/desktop/tauri-app/src-tauri/gen/
