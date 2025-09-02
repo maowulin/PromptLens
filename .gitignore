@@ -49,3 +49,7 @@ coverage/
 # Tauri
 apps/desktop/tauri-app/src-tauri/target/
 apps/desktop/tauri-app/src-tauri/gen/
+
+.env
+logs/
+.history
