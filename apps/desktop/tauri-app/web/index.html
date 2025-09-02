@@ -222,6 +222,26 @@
       </div>
 
       <div class="dashboard">
+        <!-- Network Access Card -->
+        <div class="card">
+          <h3>🌐 Network Access</h3>
+          <div class="input-group">
+            <label>Local Server URL</label>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <input type="text" id="serverUrl" readonly style="flex: 1; background: #f7fafc;">
+              <button class="btn secondary" onclick="copyUrl()">Copy</button>
+              <button class="btn secondary" onclick="refreshServerInfo()">Refresh</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>QR Code (for mobile devices)</label>
+            <div style="text-align: center; padding: 16px; background: #f7fafc; border-radius: 8px;">
+              <img id="qrCode" alt="QR Code" style="max-width: 200px; max-height: 200px;">
+              <p style="margin-top: 8px; font-size: 0.9rem; color: #718096;">Scan with mobile device to access</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Service Status Card -->
         <div class="card">
           <h3>
@@ -329,16 +349,56 @@
     </div>
 
     <script>
-      const API_BASE = "http://127.0.0.1:48080";
+      let API_BASE = "http://127.0.0.1:48080"; // Default, will be updated
       let isRecording = false;
       let recordingStartTime = null;
+      let serverInfo = null;
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {
+        loadServerInfo();
         checkService();
         updateServiceStatus();
         setInterval(updateServiceStatus, 10000); // Update every 10 seconds
       });
+
+      // Load Tauri API if available
+      if (window.__TAURI__) {
+        var invoke = window.__TAURI__.invoke;
+      }
+
+      async function loadServerInfo() {
+        try {
+          if (typeof invoke !== 'undefined') {
+            // Running in Tauri - get server info from backend
+            serverInfo = await invoke('get_server_info');
+            API_BASE = serverInfo.url;
+            document.getElementById('serverUrl').value = serverInfo.url;
+            document.getElementById('qrCode').src = serverInfo.qr_code;
+            log(`Server accessible at: ${serverInfo.url}`);
+          } else {
+            // Running in browser - use default localhost
+            document.getElementById('serverUrl').value = API_BASE;
+            log("Running in browser mode");
+          }
+        } catch (error) {
+          console.error("Failed to load server info:", error);
+          document.getElementById('serverUrl').value = API_BASE;
+          log("Failed to get server info, using default");
+        }
+      }
+
+      async function refreshServerInfo() {
+        await loadServerInfo();
+        log("Server info refreshed");
+      }
+
+      function copyUrl() {
+        const urlInput = document.getElementById('serverUrl');
+        urlInput.select();
+        document.execCommand('copy');
+        log("Server URL copied to clipboard");
+      }
 
       function log(message) {
         const logElement = document.getElementById("activityLog");
