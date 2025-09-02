@@ -1,0 +1,5 @@
+*       @owner
+/core/  @platform
+/apps/desktop/  @desktop
+/apps/mobile/   @mobile
+/shared/        @arch

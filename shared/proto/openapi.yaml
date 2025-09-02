@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: PromptLens Local Service
+  version: 0.1.0
+servers:
+  - url: http://127.0.0.1:48080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200": { description: OK }
+  /v1/pair:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pair_token: { type: string }
+              required: [pair_token]
+      responses:
+        "200":
+          description: Paired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id: { type: string }
+  /v1/record/start:
+    post:
+      responses:
+        "200": { description: Started }
+  /v1/capture/screenshot:
+    post:
+      responses:
+        "200":
+          description: Image created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_id: { type: string }

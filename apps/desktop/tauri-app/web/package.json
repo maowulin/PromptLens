@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "echo build web placeholder"
+    "build": "mkdir -p dist && cp index.html dist/index.html"
   }
 }

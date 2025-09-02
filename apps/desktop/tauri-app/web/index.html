@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptLens</title>
+  </head>
+  <body>
+    <h1>PromptLens</h1>
+    <button id="btn">Ping Health</button>
+    <pre id="out"></pre>
+    <script>
+      document.getElementById("btn").onclick = async () => {
+        const r = await fetch("http://127.0.0.1:48080/health");
+        const t = await r.text();
+        document.getElementById("out").textContent = t;
+      };
+    </script>
+  </body>
+</html>

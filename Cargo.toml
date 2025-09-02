@@ -5,6 +5,7 @@ members = [
   "core/asr",
   "core/ocr",
   "core/service",
+  "core/storage",
   "apps/desktop/tauri-app/src-tauri",
 ]
 resolver = "2"
@@ -38,6 +39,12 @@ webp = "0.2"
 mdns-sd = "0.10"
 sqlx = { version = "0.7", default-features = false, features = ["runtime-tokio", "macros", "sqlite", "uuid", "chrono"] }
 chrono = { version = "0.4", features = ["serde"] }
-openssl = { version = "0.10", optional = true }
+
+# http middleware
+tower-http = { version = "0.5", features = ["cors"] }
+dotenvy = "0.15"
+tower = { version = "0.5", features = ["limit"] }
+prometheus = "0.13"
+
 
 

@@ -1,0 +1,11 @@
+[package]
+name = "pl-storage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sqlx = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+
+
