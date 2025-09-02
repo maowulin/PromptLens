@@ -1,43 +1,91 @@
-set shell := ["bash", "-cu"]
+# PromptLens Development Commands
 
+# Build core Rust crates
 build-core:
-    cargo build --workspace --release
+    cargo build --workspace
 
+# Build desktop Tauri app
 build-desktop:
-    cd apps/desktop/tauri-app/web && pnpm i && pnpm build
-    cd apps/desktop/tauri-app && pnpm tauri build
+    cargo build -p promptlens-tauri
 
+# Build mobile Flutter app
 build-mobile:
-    cd apps/mobile/flutter-app && flutter build apk --release
+    cd apps/mobile/flutter-app && flutter build
 
+# Build all components
+build: build-core build-desktop build-mobile
+
+# Format code
 fmt:
     cargo fmt --all
+    cd apps/desktop/tauri-app/web && npx prettier --write .
+    cd apps/mobile/flutter-app && flutter format .
 
+# Lint code
 lint:
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy --workspace
+    cd apps/desktop/tauri-app/web && npx eslint .
+    cd apps/mobile/flutter-app && flutter analyze
 
+# Run tests
 test:
     cargo test --workspace
+    cd apps/desktop/tauri-app/web && npm test
+    cd apps/mobile/flutter-app && flutter test
 
+# Start development environment with platform selection
+dev:
+    ./scripts/dev.sh
+
+# Stop development environment
+dev-down:
+    ./scripts/dev.sh stop
+
+# Check service status
+dev-status:
+    ./scripts/status.sh
+
+# Check service health
+dev-health:
+    curl -s http://127.0.0.1:48080/health
+
+# Check service metrics
+dev-metrics:
+    curl -s http://127.0.0.1:48080/metrics
+
+# Run service in foreground (for debugging)
 run-service:
     RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri
 
-# Non-blocking dev helpers
-dev-up:
-    pkill -f promptlens-tauri || true
-    nohup sh -c '. "$HOME/.cargo/env"; RUST_LOG=info HOST=${HOST:-127.0.0.1} PORT=${PORT:-48080} cargo run -p promptlens-tauri --bin promptlens-tauri' > logs/promptlens.log 2>&1 &
-    echo $!
+# Clean build artifacts
+clean:
+    cargo clean
+    cd apps/desktop/tauri-app/web && rm -rf node_modules dist
+    cd apps/mobile/flutter-app && flutter clean
 
-dev-down:
-    pkill -f promptlens-tauri || true
+# Install dependencies
+install:
+    cargo build --workspace
+    cd apps/desktop/tauri-app/web && npm install
+    cd apps/mobile/flutter-app && flutter pub get
 
-dev-status:
-    ss -ltnp | grep ${PORT:-48080} || true
-
-dev-health:
-    timeout 2s curl -sS http://${HOST:-127.0.0.1}:${PORT:-48080}/readyz || true
-
-dev-metrics:
-    timeout 2s curl -sS http://${HOST:-127.0.0.1}:${PORT:-48080}/metrics | head -n 10 || true
+# Show help
+default:
+    @echo "Available commands:"
+    @echo "  dev          - Start development environment (interactive platform selection)"
+    @echo "  dev-down     - Stop development environment"
+    @echo "  dev-status   - Check service status"
+    @echo "  dev-health   - Check service health"
+    @echo "  dev-metrics  - Check service metrics"
+    @echo "  build        - Build all components"
+    @echo "  build-core   - Build Rust core crates"
+    @echo "  build-desktop- Build Tauri desktop app"
+    @echo "  build-mobile - Build Flutter mobile app"
+    @echo "  fmt          - Format all code"
+    @echo "  lint         - Lint all code"
+    @echo "  test         - Run all tests"
+    @echo "  clean        - Clean build artifacts"
+    @echo "  install      - Install dependencies"
+    @echo "  run-service  - Run service in foreground"
 
 

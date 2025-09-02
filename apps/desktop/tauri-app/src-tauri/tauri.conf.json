@@ -7,14 +7,28 @@
     "frontendDist": "../web/dist"
   },
   "tauri": {
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.promptlens.desktop"
+    },
     "windows": [
       {
-        "title": "PromptLens",
+        "title": "PromptLens Desktop",
         "resizable": true,
         "fullscreen": false,
-        "width": 1000,
-        "height": 700
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "visible": true
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   }
 }

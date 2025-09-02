@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "mkdir -p dist && cp index.html dist/index.html"
+    "dev": "echo 'Development server not needed for Tauri'",
+    "build": "mkdir -p dist && cp index.html dist/index.html && cp -r assets dist/ 2>/dev/null || true",
+    "preview": "echo 'Preview not available for Tauri'"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
   }
 }

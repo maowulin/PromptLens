@@ -1,6 +1,6 @@
 use axum::{
     extract::Path,
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Response, Html},
     routing::{get, post},
     Json, Router,
 };
@@ -41,6 +41,7 @@ pub async fn serve_http(addr: SocketAddr) {
         .allow_headers(Any);
 
     let app = Router::new()
+        .route("/", get(desktop_interface))
         .route("/health", get(|| async { "ok" }))
         .route("/readyz", get(|| async { "ok" }))
         .route("/livez", get(|| async { "ok" }))
@@ -62,6 +63,11 @@ pub async fn serve_http(addr: SocketAddr) {
     info!(%addr, "service starting");
     let listener = tokio::net::TcpListener::bind(addr).await.expect("bind");
     axum::serve(listener, app).await.expect("serve");
+}
+
+async fn desktop_interface() -> Html<&'static str> {
+    HTTP_COUNTER.inc();
+    Html(include_str!("../../../apps/desktop/tauri-app/web/index.html"))
 }
 
 async fn pair(Json(_req): Json<PairReq>) -> impl IntoResponse {
