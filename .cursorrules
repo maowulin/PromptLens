@@ -50,3 +50,4 @@ just dev-status
 - Use English for all code comments
 - Follow Rust conventions for Rust code
 - Use conventional commits for git messages
+- Use English for git commit message
