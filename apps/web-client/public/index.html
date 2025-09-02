@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PromptLens - Multi-Device Client</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PromptLens">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>📱 PromptLens</h1>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item active" data-tab="record">
+                <span class="nav-icon">🎤</span>
+                <span class="nav-label">Record</span>
+            </button>
+            <button class="nav-item" data-tab="capture">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">Capture</span>
+            </button>
+            <button class="nav-item" data-tab="pair">
+                <span class="nav-icon">🔗</span>
+                <span class="nav-label">Pair</span>
+            </button>
+            <button class="nav-item" data-tab="logs">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Logs</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Recording Tab -->
+            <div id="recordTab" class="tab-content active">
+                <div class="card">
+                    <h2>🎤 Audio Recording</h2>
+                    <div class="recording-controls">
+                        <div class="recording-status" id="recordingStatus">
+                            <div class="status-circle" id="recordingIndicator"></div>
+                            <span id="recordingText">Ready to record</span>
+                        </div>
+                        
+                        <div class="sample-rate-selector">
+                            <label>Sample Rate:</label>
+                            <select id="sampleRate" class="mobile-select">
+                                <option value="16000">16 kHz</option>
+                                <option value="22050">22.05 kHz</option>
+                                <option value="44100" selected>44.1 kHz</option>
+                                <option value="48000">48 kHz</option>
+                            </select>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button id="startRecordBtn" class="btn btn-primary btn-large">
+                                <span class="btn-icon">▶️</span>
+                                Start Recording
+                            </button>
+                            <button id="stopRecordBtn" class="btn btn-danger btn-large" disabled>
+                                <span class="btn-icon">⏹️</span>
+                                Stop Recording
+                            </button>
+                        </div>
+
+                        <div class="recording-info" id="recordingInfo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capture Tab -->
+            <div id="captureTab" class="tab-content">
+                <div class="card">
+                    <h2>📸 Screenshot Capture</h2>
+                    <div class="capture-controls">
+                        <div class="capture-mode-selector">
+                            <label>Capture Mode:</label>
+                            <select id="captureMode" class="mobile-select">
+                                <option value="fullscreen">Full Screen</option>
+                                <option value="window">Active Window</option>
+                                <option value="region">Selected Region</option>
+                            </select>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button id="captureBtn" class="btn btn-primary btn-large">
+                                <span class="btn-icon">📷</span>
+                                Capture Screenshot
+                            </button>
+                        </div>
+
+                        <div class="capture-result" id="captureResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pair Tab -->
+            <div id="pairTab" class="tab-content">
+                <div class="card">
+                    <h2>🔗 Device Pairing</h2>
+                    <div class="pair-controls">
+                        <div class="input-group">
+                            <label>Pair Token:</label>
+                            <input type="text" id="pairToken" class="mobile-input" 
+                                   placeholder="Enter pair token" value="mobile_device_001">
+                        </div>
+
+                        <div class="action-buttons">
+                            <button id="pairBtn" class="btn btn-primary btn-large">
+                                <span class="btn-icon">🔗</span>
+                                Pair Device
+                            </button>
+                        </div>
+
+                        <div class="pair-result" id="pairResult"></div>
+                    </div>
+                </div>
+
+                <!-- Server Info -->
+                <div class="card">
+                    <h2>🌐 Server Information</h2>
+                    <div class="server-info">
+                        <div class="info-item">
+                            <label>Connected to:</label>
+                            <span id="serverUrl">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Device Type:</label>
+                            <span id="deviceType">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Screen Size:</label>
+                            <span id="screenSize">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logsTab" class="tab-content">
+                <div class="card">
+                    <h2>📋 Activity Logs</h2>
+                    <div class="logs-container">
+                        <div class="logs-header">
+                            <button id="clearLogsBtn" class="btn btn-secondary">Clear Logs</button>
+                            <button id="exportLogsBtn" class="btn btn-secondary">Export</button>
+                        </div>
+                        <div class="logs-content" id="activityLogs">
+                            Welcome to PromptLens Multi-Device Client!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -67,7 +67,43 @@ pub async fn serve_http(addr: SocketAddr) {
 
 async fn desktop_interface() -> Html<&'static str> {
     HTTP_COUNTER.inc();
-    Html(include_str!("../../../apps/desktop/tauri-app/web/index.html"))
+    // Check if web-client dist exists, otherwise fallback to desktop web
+    let web_client_path = "../../../apps/web-client/dist/index.html";
+    let fallback_path = "../../../apps/desktop/tauri-app/web/index.html";
+    
+    // For now, return a simple message directing to the web client
+    Html(r#"
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>PromptLens Server</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 40px; }
+            .container { max-width: 600px; margin: 0 auto; }
+            .title { font-size: 2em; margin-bottom: 20px; }
+            .message { font-size: 1.2em; margin-bottom: 30px; color: #666; }
+            .link { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="title">📱 PromptLens Server</h1>
+            <p class="message">桌面应用程序正在运行</p>
+            <p class="message">Web 客户端正在开发中，请使用桌面应用程序进行操作</p>
+            <p><strong>API 端点可用:</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>GET /health - 健康检查</li>
+                <li>GET /metrics - 服务指标</li>
+                <li>POST /v1/record/start - 开始录制</li>
+                <li>POST /v1/record/stop - 停止录制</li>
+                <li>POST /v1/capture/screenshot - 截图</li>
+                <li>POST /v1/pair - 设备配对</li>
+            </ul>
+        </div>
+    </body>
+    </html>
+    "#)
 }
 
 async fn pair(Json(_req): Json<PairReq>) -> impl IntoResponse {
