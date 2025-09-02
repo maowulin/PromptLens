@@ -2098,6 +2098,7 @@ dependencies = [
 name = "promptlens-tauri"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "pl-service",
  "tokio",
  "tracing",

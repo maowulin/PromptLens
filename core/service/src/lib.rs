@@ -5,7 +5,6 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
-use tower::limit::RateLimitLayer;
 use tower_http::cors::{Any, CorsLayer};
 use std::time::Duration;
 use once_cell::sync::Lazy;
@@ -30,16 +29,17 @@ struct PairResp {
 
 static REGISTRY: Lazy<Registry> = Lazy::new(Registry::new);
 static HTTP_COUNTER: Lazy<IntCounter> = Lazy::new(|| {
-        let c = IntCounter::new("http_requests_total", "Total HTTP requests").unwrap();
-        REGISTRY.register(Box::new(c.clone())).ok();
-        c
-    });
+    let c = IntCounter::new("http_requests_total", "Total HTTP requests").unwrap();
+    REGISTRY.register(Box::new(c.clone())).ok();
+    c
+});
 
 pub async fn serve_http(addr: SocketAddr) {
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
         .allow_headers(Any);
+
     let app = Router::new()
         .route("/health", get(|| async { "ok" }))
         .route("/readyz", get(|| async { "ok" }))
@@ -57,14 +57,14 @@ pub async fn serve_http(addr: SocketAddr) {
         .route("/v1/record/stop", post(record_stop))
         .route("/v1/capture/screenshot", post(capture_screenshot))
         .route("/v1/image/:image_id", get(get_image))
-        .layer(cors)
-        .layer(RateLimitLayer::new(100, Duration::from_secs(1)));
+        .layer(cors);
+
     info!(%addr, "service starting");
     let listener = tokio::net::TcpListener::bind(addr).await.expect("bind");
     axum::serve(listener, app).await.expect("serve");
 }
 
-async fn pair(Json(req): Json<PairReq>) -> impl IntoResponse {
+async fn pair(Json(_req): Json<PairReq>) -> impl IntoResponse {
     HTTP_COUNTER.inc();
     let session_id = format!("s-{}", uuid::Uuid::new_v4());
     Json(PairResp { session_id })
