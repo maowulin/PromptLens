@@ -2,16 +2,12 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "PromptLens",
   "version": "0.1.0",
+  "identifier": "com.promptlens.desktop",
   "build": {
-    "beforeBuildCommand": "pnpm --prefix ../web build",
+    "beforeBuildCommand": "",
     "frontendDist": "../web/dist"
   },
-  "tauri": {
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "com.promptlens.desktop"
-    },
+  "app": {
     "windows": [
       {
         "title": "PromptLens Desktop",
