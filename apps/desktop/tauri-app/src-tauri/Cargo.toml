@@ -1,0 +1,16 @@
+[package]
+name = "promptlens-tauri"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pl-service = { path = "../../../core/service" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[[bin]]
+name = "promptlens-tauri"
+path = "src/main.rs"
+
+

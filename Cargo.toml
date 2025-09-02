@@ -1,0 +1,43 @@
+[workspace]
+members = [
+  "core/audio",
+  "core/capture",
+  "core/asr",
+  "core/ocr",
+  "core/service",
+  "apps/desktop/tauri-app/src-tauri",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+authors = ["PromptLens Team <dev@promptlens.local>"]
+rust-version = "1.76"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = "0.7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+bytes = "1"
+rustls = "0.23"
+rustls-pemfile = "2"
+rcgen = "0.12"
+tokio-rustls = "0.26"
+uuid = { version = "1", features = ["v4", "serde", "fast-rng"] }
+async-trait = "0.1"
+cpal = "0.15"
+webrtc-vad = "0.4"
+image = "0.25"
+webp = "0.2"
+mdns-sd = "0.10"
+sqlx = { version = "0.7", default-features = false, features = ["runtime-tokio", "macros", "sqlite", "uuid", "chrono"] }
+chrono = { version = "0.4", features = ["serde"] }
+openssl = { version = "0.10", optional = true }
+
+

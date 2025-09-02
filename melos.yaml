@@ -1,0 +1,9 @@
+name: promptlens
+packages:
+  - "apps/mobile/flutter-app"
+command:
+  bootstrap:
+    usePubspecOverrides: true
+scripts:
+  build: "flutter build apk --release"
+  analyze: "flutter analyze"
