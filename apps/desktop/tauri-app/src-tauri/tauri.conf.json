@@ -5,7 +5,8 @@
   "identifier": "com.promptlens.desktop",
   "build": {
     "beforeBuildCommand": "",
-    "frontendDist": "../web/dist"
+    "frontendDist": "../web/dist",
+    "devUrl": "http://127.0.0.1:5173"
   },
   "app": {
     "windows": [

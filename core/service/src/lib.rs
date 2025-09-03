@@ -65,17 +65,22 @@ pub async fn serve_http(addr: SocketAddr) {
         .route("/v1/image/:image_id", get(get_image))
         .layer(cors);
 
-    // Mount static assets at /
-    if primary_static.exists() {
-        app = app.route_service(
-            "/",
-            get_service(tower_http::services::ServeDir::new(primary_static))
-                .handle_error(|_err| async move { (StatusCode::INTERNAL_SERVER_ERROR, "static error") }),
-        );
+    // Mount static assets at / with SPA fallback
+    let (static_dir, has_static) = if primary_static.exists() {
+        (primary_static, true)
     } else if fallback_static.exists() {
+        (fallback_static, true)
+    } else {
+        (std::path::PathBuf::new(), false)
+    };
+
+    if has_static {
+        let index_html = static_dir.join("index.html");
+        let dir_service = tower_http::services::ServeDir::new(&static_dir)
+            .fallback(tower_http::services::ServeFile::new(index_html));
         app = app.route_service(
             "/",
-            get_service(tower_http::services::ServeDir::new(fallback_static))
+            get_service(dir_service)
                 .handle_error(|_err| async move { (StatusCode::INTERNAL_SERVER_ERROR, "static error") }),
         );
     } else {
@@ -144,16 +149,63 @@ async fn record_stop() -> impl IntoResponse {
     Json(serde_json::json!({ "ok": true }))
 }
 
-async fn capture_screenshot() -> impl IntoResponse {
+static SCREENSHOT_STORE: Lazy<std::sync::Mutex<std::collections::HashMap<String, Vec<u8>>>> = Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+
+async fn capture_screenshot() -> Response {
     HTTP_COUNTER.inc();
     let image_id = format!("img-{}", uuid::Uuid::new_v4());
-    Json(serde_json::json!({ "image_id": image_id }))
+    let result = tokio::task::spawn_blocking(|| {
+        if let Ok(displays) = screenshots::Screen::all() {
+            if let Some(primary) = displays.first() {
+                if let Ok(capture) = primary.capture() {
+                    if let Some(img) = image::RgbaImage::from_raw(
+                        capture.width() as u32,
+                        capture.height() as u32,
+                        capture.to_vec(),
+                    ) {
+                        let mut out = Vec::new();
+                        if image::codecs::png::PngEncoder::new(&mut out)
+                            .write_image(
+                                &img,
+                                img.width(),
+                                img.height(),
+                                image::ExtendedColorType::Rgba8,
+                            )
+                            .is_ok()
+                        {
+                            return Some(out);
+                        }
+                    }
+                }
+            }
+        }
+        None
+    })
+    .await
+    .unwrap_or(None);
+
+    match result {
+        Some(png) => {
+            if let Ok(mut store) = SCREENSHOT_STORE.lock() {
+                store.insert(image_id.clone(), png);
+            }
+            Json(serde_json::json!({ "image_id": image_id })).into_response()
+        }
+        None => (StatusCode::INTERNAL_SERVER_ERROR, "screenshot failed").into_response(),
+    }
 }
 
-async fn get_image(Path(_image_id): Path<String>) -> Response {
+async fn get_image(Path(image_id): Path<String>) -> Response {
     HTTP_COUNTER.inc();
-    let bytes: Vec<u8> = b"not-implemented".to_vec();
-    ([("Content-Type", "application/octet-stream")], bytes).into_response()
+    if let Ok(store) = SCREENSHOT_STORE.lock() {
+        if let Some(bytes) = store.get(&image_id) {
+            return ([
+                ("Content-Type", "image/png"),
+                ("Cache-Control", "no-store"),
+            ], bytes.clone()).into_response();
+        }
+    }
+    (StatusCode::NOT_FOUND, "image not found").into_response()
 }
 
 
