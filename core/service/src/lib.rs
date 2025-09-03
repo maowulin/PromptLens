@@ -7,11 +7,11 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tower_http::cors::{Any, CorsLayer};
-use std::time::Duration;
 use once_cell::sync::Lazy;
 use prometheus::{Encoder, IntCounter, Registry, TextEncoder};
 use std::net::SocketAddr;
 use tracing::info;
+use image::ImageEncoder;
 
 #[derive(Debug, Serialize)]
 struct HealthResp {
@@ -94,10 +94,6 @@ pub async fn serve_http(addr: SocketAddr) {
 
 async fn desktop_interface() -> Html<&'static str> {
     HTTP_COUNTER.inc();
-    // Check if web-client dist exists, otherwise fallback to desktop web
-    let web_client_path = "../../../apps/web-client/dist/index.html";
-    let fallback_path = "../../../apps/desktop/tauri-app/web/index.html";
-    
     // For now, return a simple message directing to the web client
     Html(r#"
     <!DOCTYPE html>
