@@ -1,128 +1,145 @@
-import { useState, useEffect } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Mic, 
-  MicOff, 
-  Camera, 
-  Link, 
-  ScrollText, 
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Mic,
+  MicOff,
+  Camera,
+  Link,
+  ScrollText,
   Circle,
   Wifi,
   WifiOff,
   Smartphone,
   Monitor,
-  Tablet
-} from 'lucide-react'
-import { api } from '@/lib/api'
-import { getDeviceInfo, formatTime } from '@/lib/utils'
-import './globals.css'
+  Tablet,
+} from "lucide-react";
+import { api } from "@/lib/api";
+import { getDeviceInfo, formatTime } from "@/lib/utils";
+import "./globals.css";
 
 function App() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [sampleRate, setSampleRate] = useState('44100')
-  const [captureMode, setCaptureMode] = useState('fullscreen')
-  const [pairToken, setPairToken] = useState('mobile_device_001')
-  const [logs, setLogs] = useState<string[]>(['Welcome to PromptLens Multi-Device Client!'])
-  const [serverUrl, setServerUrl] = useState('')
-  const [deviceInfo] = useState(getDeviceInfo())
+  const [isConnected, setIsConnected] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [sampleRate, setSampleRate] = useState("44100");
+  const [captureMode, setCaptureMode] = useState("fullscreen");
+  const [pairToken, setPairToken] = useState("mobile_device_001");
+  const [logs, setLogs] = useState<string[]>([
+    "Welcome to PromptLens Multi-Device Client!",
+  ]);
+  const [serverUrl, setServerUrl] = useState("");
+  const [deviceInfo] = useState(getDeviceInfo());
 
   useEffect(() => {
-    checkConnection()
-    setServerUrl(api.getServerUrl())
-    
-    const interval = setInterval(checkConnection, 10000)
-    return () => clearInterval(interval)
-  }, [])
+    checkConnection();
+    setServerUrl(api.getServerUrl());
+
+    const interval = setInterval(checkConnection, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval = 0;
     if (isRecording) {
       interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1)
-      }, 1000)
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
     } else {
-      setRecordingTime(0)
+      setRecordingTime(0);
     }
-    
+
     return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRecording])
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
 
   const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString()
-    setLogs(prev => [...prev, `[${timestamp}] ${message}`])
-  }
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs((prev) => [...prev, `[${timestamp}] ${message}`]);
+  };
 
   const clearLogs = () => {
-    setLogs(['Logs cleared'])
-  }
+    setLogs(["Logs cleared"]);
+  };
 
   const checkConnection = async () => {
     try {
-      const connected = await api.healthCheck()
-      setIsConnected(connected)
+      const connected = await api.healthCheck();
+      setIsConnected(connected);
       if (connected) {
-        addLog('Connected to desktop service')
+        addLog("Connected to desktop service");
       } else {
-        addLog('Connection lost to desktop service')
+        addLog("Connection lost to desktop service");
       }
     } catch (error) {
-      setIsConnected(false)
-      addLog('Failed to connect to desktop service')
+      setIsConnected(false);
+      addLog("Failed to connect to desktop service");
     }
-  }
+  };
 
   const handleStartRecording = async () => {
     try {
-      await api.startRecording(parseInt(sampleRate))
-      setIsRecording(true)
-      addLog(`Started recording at ${sampleRate} Hz`)
+      await api.startRecording(parseInt(sampleRate));
+      setIsRecording(true);
+      addLog(`Started recording at ${sampleRate} Hz`);
     } catch (error) {
-      addLog(`Failed to start recording: ${error}`)
+      addLog(`Failed to start recording: ${error}`);
     }
-  }
+  };
 
   const handleStopRecording = async () => {
     try {
-      await api.stopRecording()
-      setIsRecording(false)
-      addLog(`Stopped recording after ${formatTime(recordingTime)}`)
+      await api.stopRecording();
+      setIsRecording(false);
+      addLog(`Stopped recording after ${formatTime(recordingTime)}`);
     } catch (error) {
-      addLog(`Failed to stop recording: ${error}`)
+      addLog(`Failed to stop recording: ${error}`);
     }
-  }
+  };
 
   const handleCapture = async () => {
     try {
-      const result = await api.captureScreenshot(captureMode as any)
-      addLog(`Screenshot captured: ${result.image_id}`)
+      const result = await api.captureScreenshot(captureMode as any);
+      addLog(`Screenshot captured: ${result.image_id}`);
     } catch (error) {
-      addLog(`Screenshot failed: ${error}`)
+      addLog(`Screenshot failed: ${error}`);
     }
-  }
+  };
 
   const handlePairDevice = async () => {
     try {
-      const result = await api.pairDevice(pairToken)
-      addLog(`Device paired successfully: ${result.session_id}`)
+      const result = await api.pairDevice(pairToken);
+      addLog(`Device paired successfully: ${result.session_id}`);
     } catch (error) {
-      addLog(`Pairing failed: ${error}`)
+      addLog(`Pairing failed: ${error}`);
     }
-  }
+  };
 
   const getDeviceIcon = () => {
     switch (deviceInfo.deviceType) {
-      case 'mobile': return <Smartphone className="h-4 w-4" />
-      case 'tablet': return <Tablet className="h-4 w-4" />
-      default: return <Monitor className="h-4 w-4" />
+      case "mobile":
+        return <Smartphone className="h-4 w-4" />;
+      case "tablet":
+        return <Tablet className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -191,11 +208,11 @@ function App() {
                       <Circle className="h-3 w-3 text-gray-400" />
                     )}
                     <span className="font-mono text-lg">
-                      {isRecording ? formatTime(recordingTime) : '00:00'}
+                      {isRecording ? formatTime(recordingTime) : "00:00"}
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Sample Rate</label>
                   <Select value={sampleRate} onValueChange={setSampleRate}>
@@ -212,7 +229,7 @@ function App() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button 
+                  <Button
                     onClick={handleStartRecording}
                     disabled={isRecording || !isConnected}
                     className="flex-1"
@@ -221,7 +238,7 @@ function App() {
                     <Mic className="mr-2 h-4 w-4" />
                     Start Recording
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleStopRecording}
                     disabled={!isRecording}
                     variant="destructive"
@@ -263,7 +280,7 @@ function App() {
                   </Select>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleCapture}
                   disabled={!isConnected}
                   className="w-full"
@@ -301,7 +318,7 @@ function App() {
                     />
                   </div>
 
-                  <Button 
+                  <Button
                     onClick={handlePairDevice}
                     disabled={!isConnected}
                     className="w-full"
@@ -319,19 +336,27 @@ function App() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Server:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Server:
+                    </span>
                     <span className="text-sm font-mono">{serverUrl}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Device:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Device:
+                    </span>
                     <span className="text-sm flex items-center">
                       {getDeviceIcon()}
                       <span className="ml-1">{deviceInfo.deviceType}</span>
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Screen:</span>
-                    <span className="text-sm font-mono">{deviceInfo.screenSize}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Screen:
+                    </span>
+                    <span className="text-sm font-mono">
+                      {deviceInfo.screenSize}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -355,7 +380,7 @@ function App() {
               <CardContent>
                 <div className="bg-muted p-4 rounded-lg max-h-64 overflow-y-auto">
                   <pre className="text-xs font-mono whitespace-pre-wrap">
-                    {logs.join('\n')}
+                    {logs.join("\n")}
                   </pre>
                 </div>
               </CardContent>
@@ -364,7 +389,7 @@ function App() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

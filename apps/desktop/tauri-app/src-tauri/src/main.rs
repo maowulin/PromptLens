@@ -1,3 +1,5 @@
+use tokio::time::Duration;
+
 #[tokio::main]
 async fn main() {
     // Start HTTP server in background on all interfaces
@@ -9,7 +11,7 @@ async fn main() {
     });
     
     // Wait a bit for server to start
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    tokio::time::sleep(Duration::from_millis(500)).await;
     
     println!("PromptLens Desktop starting...");
     println!("Local server available on all network interfaces: http://0.0.0.0:48080");

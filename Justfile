@@ -20,18 +20,21 @@ fmt:
     cargo fmt --all
     cd apps/desktop/tauri-app/web && npx prettier --write .
     cd apps/mobile/flutter-app && flutter format .
+    cd apps/web-client && npx prettier --write .
 
 # Lint code
 lint:
     cargo clippy --workspace
     cd apps/desktop/tauri-app/web && npx eslint .
     cd apps/mobile/flutter-app && flutter analyze
+    cd apps/web-client && npx eslint . || true
 
 # Run tests
 test:
     cargo test --workspace
     cd apps/desktop/tauri-app/web && npm test
     cd apps/mobile/flutter-app && flutter test
+    cd apps/web-client && npm test || true
 
 # Start development environment with platform selection
 dev:
@@ -57,17 +60,27 @@ dev-metrics:
 run-service:
     RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri
 
+# Build web-client and copy to dist if needed
+build-web-client:
+    cd apps/web-client && pnpm install && pnpm build
+
+# Preview web-client
+preview-web-client:
+    cd apps/web-client && pnpm preview --host 0.0.0.0 --port 5173
+
 # Clean build artifacts
 clean:
     cargo clean
     cd apps/desktop/tauri-app/web && rm -rf node_modules dist
     cd apps/mobile/flutter-app && flutter clean
+    cd apps/web-client && rm -rf node_modules dist || true
 
 # Install dependencies
 install:
     cargo build --workspace
     cd apps/desktop/tauri-app/web && npm install
     cd apps/mobile/flutter-app && flutter pub get
+    cd apps/web-client && pnpm install
 
 # Show help
 default:

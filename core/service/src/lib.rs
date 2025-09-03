@@ -1,7 +1,8 @@
 use axum::{
     extract::Path,
+    http::StatusCode,
     response::{IntoResponse, Response, Html},
-    routing::{get, post},
+    routing::{get, post, get_service},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -40,8 +41,12 @@ pub async fn serve_http(addr: SocketAddr) {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let app = Router::new()
-        .route("/", get(desktop_interface))
+    // Choose static assets directory: prefer web-client/dist, fallback to tauri web/dist
+    let crate_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let primary_static = crate_dir.join("../../apps/web-client/dist");
+    let fallback_static = crate_dir.join("../../apps/desktop/tauri-app/web/dist");
+
+    let mut app = Router::new()
         .route("/health", get(|| async { "ok" }))
         .route("/readyz", get(|| async { "ok" }))
         .route("/livez", get(|| async { "ok" }))
@@ -59,6 +64,23 @@ pub async fn serve_http(addr: SocketAddr) {
         .route("/v1/capture/screenshot", post(capture_screenshot))
         .route("/v1/image/:image_id", get(get_image))
         .layer(cors);
+
+    // Mount static assets at /
+    if primary_static.exists() {
+        app = app.route_service(
+            "/",
+            get_service(tower_http::services::ServeDir::new(primary_static))
+                .handle_error(|_err| async move { (StatusCode::INTERNAL_SERVER_ERROR, "static error") }),
+        );
+    } else if fallback_static.exists() {
+        app = app.route_service(
+            "/",
+            get_service(tower_http::services::ServeDir::new(fallback_static))
+                .handle_error(|_err| async move { (StatusCode::INTERNAL_SERVER_ERROR, "static error") }),
+        );
+    } else {
+        app = app.route("/", get(desktop_interface));
+    }
 
     info!(%addr, "service starting");
     let listener = tokio::net::TcpListener::bind(addr).await.expect("bind");
