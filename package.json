@@ -15,7 +15,7 @@
     "start:web": "pnpm -C apps/web-client dev --host 0.0.0.0 --port 5173 --strictPort",
     "start:desktop": "nohup env RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri > logs/tauri.log 2>&1 &",
     "start:service": "RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri",
-    "start:all": "pnpm build:web && pnpm start:desktop",
+    "start": "pnpm build:web && pnpm start:desktop",
     "dev:desktop": "concurrently -k \"pnpm -C apps/web-client dev --host 127.0.0.1 --port 5173 --strictPort\" \"pnpm -C apps/desktop/tauri-app tauri dev\"",
     "build:desktop:bundle": "pnpm -C apps/desktop/tauri-app tauri build",
     "build:mobile": "cd apps/mobile/flutter-app && flutter build apk --release",
