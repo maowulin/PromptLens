@@ -41,17 +41,23 @@ class PromptLensAPI {
       throw error;
     }
   }
-
-  async startRecording(sampleRate: number = 44100): Promise<{ ok: boolean }> {
+  
+  async startRecording(params: { sampleRate?: number; inputDeviceId?: string; outputDeviceId?: string; source?: 'desktop' | 'browser' } = {}): Promise<{ ok: boolean }> {
+    const { sampleRate = 44100, inputDeviceId, outputDeviceId, source } = params
     try {
       const response = await fetch(`${this.baseUrl}/v1/record/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sample_rate: sampleRate }),
-      });
-      return await response.json();
+        body: JSON.stringify({
+          sample_rate: sampleRate,
+          input_device_id: inputDeviceId,
+          output_device_id: outputDeviceId,
+          source,
+        }),
+      })
+      return await response.json()
     } catch (error) {
       console.error("Failed to start recording:", error);
       throw error;
@@ -114,6 +120,20 @@ class PromptLensAPI {
     }
   }
 
+  // --- Audio devices API ---
+  async getAudioDevices(): Promise<AudioDevices> {
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/audio/devices`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Failed to get audio devices:', error)
+      throw error
+    }
+  }
+  
   getServerUrl(): string {
     return this.baseUrl;
   }
@@ -121,6 +141,28 @@ class PromptLensAPI {
   getConnectionStatus(): boolean {
     return this.isConnected;
   }
+}
+
+export type AudioDeviceInfo = {
+  id: string
+  name: string
+  is_default: boolean
+}
+
+export type AudioDevices = {
+  inputs: AudioDeviceInfo[]
+  outputs: AudioDeviceInfo[]
+}
+
+export type AudioDeviceInfo = {
+  id: string
+  name: string
+  is_default: boolean
+}
+
+export type AudioDevices = {
+  inputs: AudioDeviceInfo[]
+  outputs: AudioDeviceInfo[]
 }
 
 export const api = new PromptLensAPI();

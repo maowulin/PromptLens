@@ -24,5 +24,6 @@ tower-http = { workspace = true }
 prometheus = { workspace = true }
 tower = { workspace = true }
 screenshots = { workspace = true }
+pl-audio = { path = "../audio" }
 
 

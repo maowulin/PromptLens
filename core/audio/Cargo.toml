@@ -10,5 +10,6 @@ webrtc-vad = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 async-trait = { workspace = true }
+serde = { workspace = true }
 
 

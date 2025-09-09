@@ -12,6 +12,7 @@ use prometheus::{Encoder, IntCounter, Registry, TextEncoder};
 use std::net::SocketAddr;
 use tracing::info;
 use image::ImageEncoder;
+use pl_audio as audio;
 
 #[derive(Debug, Serialize)]
 struct HealthResp {
@@ -26,6 +27,17 @@ struct PairReq {
 #[derive(Debug, Serialize)]
 struct PairResp {
     session_id: String,
+}
+
+// New: start recording request payload
+#[derive(Debug, Deserialize)]
+struct StartRecordReq {
+    sample_rate: Option<u32>,
+    input_device_id: Option<String>,
+    output_device_id: Option<String>,
+    // future extension, e.g. source: desktop/browser
+    #[allow(dead_code)]
+    source: Option<String>,
 }
 
 static REGISTRY: Lazy<Registry> = Lazy::new(Registry::new);
@@ -63,6 +75,7 @@ pub async fn serve_http(addr: SocketAddr) {
         .route("/v1/record/stop", post(record_stop))
         .route("/v1/capture/screenshot", post(capture_screenshot))
         .route("/v1/image/:image_id", get(get_image))
+        .route("/v1/audio/devices", get(list_audio_devices))
         .layer(cors);
 
     // Mount static assets at / with SPA fallback
@@ -122,6 +135,7 @@ async fn desktop_interface() -> Html<&'static str> {
                 <li>POST /v1/record/stop - 停止录制</li>
                 <li>POST /v1/capture/screenshot - 截图</li>
                 <li>POST /v1/pair - 设备配对</li>
+                <li>GET /v1/audio/devices - 列出音频输入/输出设备</li>
             </ul>
         </div>
     </body>
@@ -135,8 +149,13 @@ async fn pair(Json(_req): Json<PairReq>) -> impl IntoResponse {
     Json(PairResp { session_id })
 }
 
-async fn record_start() -> impl IntoResponse {
+async fn record_start(Json(req): Json<StartRecordReq>) -> impl IntoResponse {
     HTTP_COUNTER.inc();
+    // For now, just acknowledge and log parameters; actual capture pipeline will be wired later
+    let sr = req.sample_rate.unwrap_or(44_100);
+    let in_id = req.input_device_id.as_deref().unwrap_or("");
+    let out_id = req.output_device_id.as_deref().unwrap_or("");
+    tracing::info!(sample_rate=sr, input_device_id=%in_id, output_device_id=%out_id, "record_start called");
     Json(serde_json::json!({ "ok": true }))
 }
 
@@ -202,6 +221,18 @@ async fn get_image(Path(image_id): Path<String>) -> Response {
         }
     }
     (StatusCode::NOT_FOUND, "image not found").into_response()
+}
+
+async fn list_audio_devices() -> impl IntoResponse {
+    HTTP_COUNTER.inc();
+    match audio::list_devices() {
+        Ok(devs) => Json(serde_json::json!({
+            "inputs": devs.inputs,
+            "outputs": devs.outputs,
+        }))
+        .into_response(),
+        Err(_e) => (StatusCode::INTERNAL_SERVER_ERROR, "list devices failed").into_response(),
+    }
 }
 
 

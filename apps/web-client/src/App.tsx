@@ -28,7 +28,7 @@ import {
   Monitor,
   Tablet,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, type AudioDevices } from "@/lib/api";
 import { getDeviceInfo, formatTime } from "@/lib/utils";
 import "./globals.css";
 
@@ -44,6 +44,12 @@ function App() {
   ]);
   const [serverUrl, setServerUrl] = useState("");
   const [deviceInfo] = useState(getDeviceInfo());
+  const [audioDevices, setAudioDevices] = useState<AudioDevices | null>(null);
+  const [selectedInputId, setSelectedInputId] = useState<string>("");
+  const [selectedOutputId, setSelectedOutputId] = useState<string>("");
+  // NEW: audio source selection and browser-side devices cache
+  const [audioSource, setAudioSource] = useState<"desktop" | "browser">("desktop");
+  const [browserDevices, setBrowserDevices] = useState<AudioDevices | null>(null);
 
   useEffect(() => {
     checkConnection();
@@ -67,6 +73,59 @@ function App() {
       if (interval) clearInterval(interval);
     };
   }, [isRecording]);
+
+  // Load audio devices when connection status changes
+  useEffect(() => {
+    const load = async () => {
+      if (!isConnected || audioSource !== "desktop") return;
+      try {
+        const devs = await api.getAudioDevices();
+        setAudioDevices(devs);
+        const defIn = devs.inputs.find((d) => d.is_default)?.id ?? devs.inputs[0]?.id ?? "";
+        const defOut = devs.outputs.find((d) => d.is_default)?.id ?? devs.outputs[0]?.id ?? "";
+        setSelectedInputId(defIn);
+        setSelectedOutputId(defOut);
+        addLog(`Audio devices loaded (inputs: ${devs.inputs.length}, outputs: ${devs.outputs.length})`);
+      } catch (e) {
+        addLog("Failed to load audio devices");
+      }
+    };
+    load();
+  }, [isConnected, audioSource]);
+
+  // NEW: enumerate browser devices when source switched to browser
+  useEffect(() => {
+    const enumerateBrowserDevices = async () => {
+      if (audioSource !== "browser") return;
+      try {
+        // Request mic permission to get device labels
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const inputs = devices
+            .filter((d) => d.kind === "audioinput")
+            .map((d, idx) => ({ id: d.deviceId || `in-${idx}`, name: d.label || `Mic ${idx + 1}`, is_default: false }));
+          const outputs = devices
+            .filter((d) => d.kind === "audiooutput")
+            .map((d, idx) => ({ id: d.deviceId || `out-${idx}`, name: d.label || `Speaker ${idx + 1}`, is_default: false }));
+          const mapped: AudioDevices = { inputs, outputs };
+          setBrowserDevices(mapped);
+          const defIn = inputs[0]?.id ?? "";
+          const defOut = outputs[0]?.id ?? "";
+          setSelectedInputId(defIn);
+          setSelectedOutputId(defOut);
+          addLog(`Browser devices loaded (inputs: ${inputs.length}, outputs: ${outputs.length})`);
+        } finally {
+          // stop tracks to release mic
+          stream.getTracks().forEach((t) => t.stop());
+        }
+      } catch (err) {
+        addLog("Microphone permission denied or enumerateDevices not available");
+      }
+    };
+
+    enumerateBrowserDevices();
+  }, [audioSource]);
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -94,9 +153,14 @@ function App() {
 
   const handleStartRecording = async () => {
     try {
-      await api.startRecording(parseInt(sampleRate));
+      await api.startRecording({
+        sampleRate: parseInt(sampleRate),
+        inputDeviceId: selectedInputId || undefined,
+        outputDeviceId: selectedOutputId || undefined,
+        source: audioSource,
+      });
       setIsRecording(true);
-      addLog(`Started recording at ${sampleRate} Hz`);
+      addLog(`Started recording at ${sampleRate} Hz (source=${audioSource}, in=${selectedInputId || 'default'}, out=${selectedOutputId || 'default'})`);
     } catch (error) {
       addLog(`Failed to start recording: ${error}`);
     }
@@ -200,6 +264,7 @@ function App() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Status */}
                 <div className="flex items-center justify-center p-4 bg-muted rounded-lg">
                   <div className="flex items-center space-x-3">
                     {isRecording ? (
@@ -213,6 +278,21 @@ function App() {
                   </div>
                 </div>
 
+                {/* NEW: audio source */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Audio Source</label>
+                  <Select value={audioSource} onValueChange={(v) => setAudioSource(v as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desktop">Desktop Service</SelectItem>
+                      <SelectItem value="browser">Browser</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sample rate */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Sample Rate</label>
                   <Select value={sampleRate} onValueChange={setSampleRate}>
@@ -228,10 +308,58 @@ function App() {
                   </Select>
                 </div>
 
+                {/* Devices */}
+                {(() => {
+                  const activeDevices = audioSource === "desktop" ? audioDevices : browserDevices;
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Input Device</label>
+                        <Select
+                          value={selectedInputId}
+                          onValueChange={setSelectedInputId}
+                          disabled={(audioSource === "desktop" && (!isConnected || !activeDevices || activeDevices.inputs.length === 0)) || (audioSource === "browser" && (!activeDevices || activeDevices.inputs.length === 0))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select input device" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activeDevices?.inputs.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                {d.name}{d.is_default ? " (Default)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Output Device</label>
+                        <Select
+                          value={selectedOutputId}
+                          onValueChange={setSelectedOutputId}
+                          disabled={(audioSource === "desktop" && (!isConnected || !activeDevices || activeDevices.outputs.length === 0)) || (audioSource === "browser" && (!activeDevices || activeDevices.outputs.length === 0))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select output device" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activeDevices?.outputs.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                {d.name}{d.is_default ? " (Default)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="flex space-x-2">
                   <Button
                     onClick={handleStartRecording}
-                    disabled={isRecording || !isConnected}
+                    disabled={isRecording || !isConnected || audioSource !== "desktop"}
                     className="flex-1"
                     size="lg"
                   >
@@ -249,6 +377,11 @@ function App() {
                     Stop Recording
                   </Button>
                 </div>
+                {audioSource === "browser" && (
+                  <p className="text-xs text-muted-foreground">
+                    Browser source currently supports device enumeration. Starting/stopping recording is wired to the Desktop Service.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
