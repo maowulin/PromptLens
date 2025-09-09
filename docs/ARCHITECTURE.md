@@ -57,7 +57,7 @@ flowchart LR
   - [ ] Rust Core：音频采集 + VAD 骨架；云 ASR 适配；字幕增量 WS 流
   - [ ] 本地服务：axum REST/WS；自签 TLS + 指纹固定；mDNS/二维码配对 + 短期 Token；限速与会话续期
   - [ ] 桌面端：Tauri 壳；字幕视图；权限引导（麦克风/屏幕）
-  - [ ] 截屏 + OCR：`POST /v1/capture/screenshot[+ocr]` 最小闭环；建议卡片占位
+  - [x] 截屏 + OCR：`POST /v1/capture/screenshot[+ocr]` 最小闭环；建议卡片占位
   - [ ] 存储与导出：SQLite/SQLCipher；导出 Markdown
   - 工具链
     - [x] Just 任务：fmt / lint / test
