@@ -1,53 +1,82 @@
-# Cursor Rules for WSL Environment
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Command Execution Guidelines
+## Project Architecture
 
-### Avoid Command Hanging in WSL
+PromptLens is a Rust-based application with multi-platform support. The project uses a modular architecture with the following structure:
+
+- **Core crates** (Rust workspace): Independent functionality modules
+  - `core/audio`: Audio recording and processing
+  - `core/capture`: Screen capture functionality  
+  - `core/asr`: Automatic speech recognition
+  - `core/ocr`: Optical character recognition
+  - `core/service`: HTTP API service layer using Axum
+  - `core/storage`: Data persistence layer with SQLx/SQLite
+
+- **Applications**:
+  - `apps/desktop/tauri-app`: Native desktop app using Tauri framework
+  - `apps/mobile/flutter-app`: Mobile app using Flutter (Android/iOS)
+
+The core service (`core/service/src/lib.rs`) provides an HTTP API with endpoints for pairing, recording, and screen capture. The Tauri desktop app serves as both a native wrapper and embeds the web interface.
+
+## Development Commands
+
+Use the Justfile for all development tasks:
+
+```bash
+# Start development (interactive platform selection)
+just dev
+
+# Stop development environment  
+just dev-down
+
+# Check service status and health
+just dev-status
+just dev-health
+
+# Build all components
+just build
+
+# Build specific targets
+just build-core      # Core Rust crates
+just build-desktop   # Tauri desktop app
+just build-mobile    # Flutter mobile app
+
+# Code quality
+just fmt    # Format all code (Rust + web + Flutter)
+just lint   # Lint all code
+just test   # Run all tests
+
+# Dependencies and cleanup
+just install  # Install all dependencies
+just clean    # Clean build artifacts
+```
+
+The development script (`scripts/dev.sh`) provides platform-specific startup options and handles service lifecycle management.
+
+## WSL Environment Considerations
+
+When working in WSL, follow these guidelines from `.cursorrules`:
 
 - **Never use pipes (`|`) with long-running commands** - they can hang in WSL
-- **Avoid complex one-liners** - break them into separate commands
-- **Use `nohup` or `&` for background processes** instead of foreground blocking
-- **Prefer `just` commands** for development tasks (just dev-up, just dev-down, etc.)
-- **Set timeouts** on network requests (curl with --max-time or timeout wrapper)
-- **Kill processes explicitly** before starting new ones to avoid port conflicts
+- **Prefer `just` commands** over direct terminal commands
+- **Use `pkill -f process_name`** to clean up before starting services
+- **Set timeouts** on network requests and avoid complex shell constructs
 
-### WSL-Specific Best Practices
+## Build System
 
-- Use `pkill -f process_name` to clean up before starting services
-- Prefer simple commands over complex shell constructs
-- When possible, use the Justfile tasks instead of direct terminal commands
-- For long operations, use background execution with logging
+- **Rust**: Cargo workspace with shared dependencies defined in root `Cargo.toml`
+- **Web**: Minimal setup with Tauri integration, uses `package.json` for Tauri CLI
+- **Flutter**: Standard Flutter project structure with `pubspec.yaml`
 
-### Examples of What NOT to Do
+The service runs on `http://127.0.0.1:48080` by default with health endpoints at `/health`, `/readyz`, `/livez` and metrics at `/metrics`.
 
-```bash
-# ❌ This can hang in WSL
-cargo build --workspace | cat
+## Service Architecture
 
-# ❌ Complex one-liner that may block
-pkill -f x && cargo build && nohup cargo run &
+The HTTP service (`core/service`) uses:
+- Axum for HTTP handling
+- Prometheus metrics collection
+- CORS enabled for cross-origin requests
+- UUID-based session and resource IDs
+- Embedded web interface served from root endpoint
 
-# ❌ Heredoc with pipes
-cat >> file << 'EOF' | grep pattern
-```
-
-### Examples of What TO Do
-
-```bash
-# ✅ Simple, direct commands
-cargo build --workspace
-pkill -f process_name
-nohup cargo run > log.txt 2>&1 &
-
-# ✅ Use Justfile tasks
-just dev-up
-just dev-down
-just dev-status
-```
-
-## Code Style
-
-- Use English for all code comments
-- Follow Rust conventions for Rust code
-- Use conventional commits for git messages
-- Use English for git commit message
+All core crates are designed as independent modules that can be used separately or composed together through the service layer.
