@@ -154,15 +154,4 @@ export type AudioDevices = {
   outputs: AudioDeviceInfo[]
 }
 
-export type AudioDeviceInfo = {
-  id: string
-  name: string
-  is_default: boolean
-}
-
-export type AudioDevices = {
-  inputs: AudioDeviceInfo[]
-  outputs: AudioDeviceInfo[]
-}
-
 export const api = new PromptLensAPI();
