@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -48,8 +48,18 @@ function App() {
   const [selectedInputId, setSelectedInputId] = useState<string>("");
   const [selectedOutputId, setSelectedOutputId] = useState<string>("");
   // NEW: audio source selection and browser-side devices cache
-  const [audioSource, setAudioSource] = useState<"desktop" | "browser">("desktop");
+ const [audioSource, setAudioSource] = useState<"desktop" | "browser">("browser");
   const [browserDevices, setBrowserDevices] = useState<AudioDevices | null>(null);
+ // NEW: mic/speaker test states
+ const [micTestRunning, setMicTestRunning] = useState(false);
+ const [micLevel, setMicLevel] = useState(0);
+ const micTestRef = useRef<{
+   ctx: AudioContext;
+   analyser: AnalyserNode;
+   source: MediaStreamAudioSourceNode;
+   stream: MediaStream;
+   rafId: number;
+ } | null>(null);
 
   useEffect(() => {
     checkConnection();
@@ -126,6 +136,93 @@ function App() {
 
     enumerateBrowserDevices();
   }, [audioSource]);
+
+ // NEW: microphone connectivity test (Browser source)
+ const startMicTest = async () => {
+   if (micTestRunning) return;
+   try {
+     const constraints: MediaStreamConstraints = {
+       audio: selectedInputId ? { deviceId: { exact: selectedInputId } as any } : true,
+     };
+     const stream = await navigator.mediaDevices.getUserMedia(constraints);
+     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+     await ctx.resume();
+     const source = ctx.createMediaStreamSource(stream);
+     const analyser = ctx.createAnalyser();
+     analyser.fftSize = 2048;
+     source.connect(analyser);
+     const data = new Uint8Array(analyser.fftSize);
+     const loop = () => {
+       analyser.getByteTimeDomainData(data);
+       // Compute RMS level (0..1)
+       let sum = 0;
+       for (let i = 0; i < data.length; i++) {
+         const v = (data[i] - 128) / 128;
+         sum += v * v;
+       }
+       const rms = Math.sqrt(sum / data.length);
+       setMicLevel(rms);
+       const rafId = requestAnimationFrame(loop);
+       if (micTestRef.current) micTestRef.current.rafId = rafId;
+     };
+     const rafId = requestAnimationFrame(loop);
+     micTestRef.current = { ctx, analyser, source, stream, rafId };
+     setMicTestRunning(true);
+     addLog("Microphone test started");
+   } catch (e) {
+     addLog(`Failed to start mic test: ${e}`);
+   }
+ };
+
+ const stopMicTest = async () => {
+   if (!micTestRef.current) return;
+   const { ctx, stream, rafId } = micTestRef.current;
+   cancelAnimationFrame(rafId);
+   stream.getTracks().forEach((t) => t.stop());
+   try {
+     await ctx.close();
+   } catch {}
+   micTestRef.current = null;
+   setMicTestRunning(false);
+   setMicLevel(0);
+   addLog("Microphone test stopped");
+ };
+
+ // NEW: speaker connectivity test (Browser source)
+ const playSpeakerTest = async () => {
+   try {
+     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+     await ctx.resume();
+     const osc = ctx.createOscillator();
+     osc.type = "sine";
+     osc.frequency.value = 440; // A4
+     const gain = ctx.createGain();
+     gain.gain.value = 0.1; // low volume
+     const dest = ctx.createMediaStreamDestination();
+     osc.connect(gain).connect(dest);
+     const audioEl = new Audio();
+     // Route to selected output device if supported
+     if ((audioEl as any).setSinkId && selectedOutputId) {
+       try {
+         await (audioEl as any).setSinkId(selectedOutputId);
+       } catch (err) {
+         addLog(`setSinkId failed: ${err}`);
+       }
+     }
+     audioEl.srcObject = dest.stream as any;
+     await audioEl.play();
+     osc.start();
+     addLog("Playing test tone to speaker");
+     setTimeout(async () => {
+       osc.stop();
+       try { await ctx.close(); } catch {}
+       try { audioEl.pause(); audioEl.srcObject = null; } catch {}
+       addLog("Speaker test finished");
+     }, 1000);
+   } catch (e) {
+     addLog(`Failed to play test tone: ${e}`);
+   }
+ };
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -355,6 +452,35 @@ function App() {
                     </div>
                   );
                 })()}
++
+               {audioSource === "browser" && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {/* Mic test */}
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium">Microphone Test</label>
+                     <div className="flex items-center gap-3">
+                       <Button onClick={micTestRunning ? stopMicTest : startMicTest} size="sm">
+                         {micTestRunning ? "Stop" : "Start"}
+                       </Button>
+                       <div className="flex-1 h-2 bg-muted rounded">
+                         <div
+                           className="h-2 bg-green-500 rounded"
+                           style={{ width: `${Math.min(100, Math.round(micLevel * 200))}%` }}
+                         />
+                       </div>
+                     </div>
+                     <p className="text-xs text-muted-foreground">Speak into the mic. The bar should move.</p>
+                   </div>
+                   {/* Speaker test */}
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium">Speaker Test</label>
+                     <div className="flex items-center gap-3">
+                       <Button onClick={playSpeakerTest} size="sm">Play Test Tone</Button>
+                     </div>
+                     <p className="text-xs text-muted-foreground">A short beep (440Hz) will be played to the selected output device.</p>
+                   </div>
+                 </div>
+               )}
 
                 <div className="flex space-x-2">
                   <Button
@@ -379,9 +505,10 @@ function App() {
                 </div>
                 {audioSource === "browser" && (
                   <p className="text-xs text-muted-foreground">
-                    Browser source currently supports device enumeration. Starting/stopping recording is wired to the Desktop Service.
+                    Browser source currently supports device enumeration and connectivity tests locally. Start/Stop recording buttons control the Desktop Service and are disabled here.
                   </p>
                 )}
+
               </CardContent>
             </Card>
           </TabsContent>
