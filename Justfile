@@ -8,6 +8,10 @@ build-core:
 build-desktop:
     cargo build -p promptlens-tauri
 
+bundle-desktop:
+    cd apps/desktop/tauri-app/web && pnpm install && pnpm build
+    cd apps/desktop/tauri-app && pnpm tauri build
+
 # Build mobile Flutter app
 build-mobile:
     cd apps/mobile/flutter-app && flutter build
@@ -93,6 +97,7 @@ default:
     @echo "  build        - Build all components"
     @echo "  build-core   - Build Rust core crates"
     @echo "  build-desktop- Build Tauri desktop app"
+    @echo "  bundle-desktop - Build desktop installers (web build + tauri build)"
     @echo "  build-mobile - Build Flutter mobile app"
     @echo "  fmt          - Format all code"
     @echo "  lint         - Lint all code"
