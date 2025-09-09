@@ -1,0 +1,42 @@
+name: Desktop Windows Build
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - "desktop-v*"
+
+jobs:
+  build-windows-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Show pnpm version
+        run: pnpm -v
+
+      - name: Build and bundle with Tauri Action
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: apps/desktop/tauri-app
+          tauriScript: pnpm tauri
+          args: build
+          beforeBuildCommand: pnpm -C apps/desktop/tauri-app/web i && pnpm -C apps/desktop/tauri-app/web build
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptlens-windows-bundle
+          path: |
+            apps/desktop/tauri-app/src-tauri/target/release/bundle/**
+          if-no-files-found: error
