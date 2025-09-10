@@ -54,7 +54,11 @@ pub fn list_devices() -> Result<AudioDevices, AudioError> {
                 .as_ref()
                 .map(|n| n == &name)
                 .unwrap_or(false);
-            inputs.push(AudioDeviceInfo { id, name, is_default });
+            inputs.push(AudioDeviceInfo {
+                id,
+                name,
+                is_default,
+            });
         }
     }
 
@@ -70,11 +74,13 @@ pub fn list_devices() -> Result<AudioDevices, AudioError> {
                 .as_ref()
                 .map(|n| n == &name)
                 .unwrap_or(false);
-            outputs.push(AudioDeviceInfo { id, name, is_default });
+            outputs.push(AudioDeviceInfo {
+                id,
+                name,
+                is_default,
+            });
         }
     }
 
     Ok(AudioDevices { inputs, outputs })
 }
-
-

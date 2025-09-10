@@ -17,5 +17,3 @@ pub struct CaptureConfig {
 pub trait ScreenCapture {
     fn capture_once(&self, cfg: &CaptureConfig) -> Result<Vec<u8>, CaptureError>;
 }
-
-

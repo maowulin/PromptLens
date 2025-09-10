@@ -14,5 +14,3 @@ pub async fn initialize_pool(database_url: &str) -> Result<Pool<Sqlite>, Storage
         .await
         .map_err(|e| StorageError::Connection(e.to_string()))
 }
-
-

@@ -28,8 +28,8 @@ jobs:
           cache: "pnpm"
       - run: corepack enable
       - run: pnpm -v
-      - run: pnpm --prefix apps/desktop/tauri-app/web i
-      - run: pnpm --prefix apps/desktop/tauri-app/web build
+      - run: pnpm --prefix apps/web-client i
+      - run: pnpm --prefix apps/web-client build:desktop
   flutter-analyze:
     runs-on: ubuntu-latest
     steps:

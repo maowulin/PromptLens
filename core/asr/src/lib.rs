@@ -19,5 +19,3 @@ pub struct TranscriptDelta {
 pub trait AsrStream: Send + Sync {
     async fn push_pcm(&self, _pcm: &[i16]);
 }
-
-

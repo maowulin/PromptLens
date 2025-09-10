@@ -12,5 +12,3 @@ pub struct OcrBlock {
     pub bbox: (u32, u32, u32, u32),
     pub text: String,
 }
-
-

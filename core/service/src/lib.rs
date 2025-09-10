@@ -1,18 +1,18 @@
 use axum::{
     extract::Path,
     http::StatusCode,
-    response::{IntoResponse, Response, Html},
-    routing::{get, post, get_service},
+    response::{Html, IntoResponse, Response},
+    routing::{get, get_service, post},
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
-use tower_http::cors::{Any, CorsLayer};
-use once_cell::sync::Lazy;
-use prometheus::{Encoder, IntCounter, Registry, TextEncoder};
-use std::net::SocketAddr;
-use tracing::info;
 use image::ImageEncoder;
+use once_cell::sync::Lazy;
 use pl_audio as audio;
+use prometheus::{Encoder, IntCounter, Registry, TextEncoder};
+use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
+use tower_http::cors::{Any, CorsLayer};
+use tracing::info;
 
 #[derive(Debug, Serialize)]
 struct HealthResp {
@@ -62,14 +62,17 @@ pub async fn serve_http(addr: SocketAddr) {
         .route("/health", get(|| async { "ok" }))
         .route("/readyz", get(|| async { "ok" }))
         .route("/livez", get(|| async { "ok" }))
-        .route("/metrics", get(move || async move {
-            HTTP_COUNTER.inc();
-            let mut buf = Vec::new();
-            let encoder = TextEncoder::new();
-            let mf = REGISTRY.gather();
-            encoder.encode(&mf, &mut buf).unwrap();
-            ([("Content-Type", "text/plain; version=0.0.4")], buf)
-        }))
+        .route(
+            "/metrics",
+            get(move || async move {
+                HTTP_COUNTER.inc();
+                let mut buf = Vec::new();
+                let encoder = TextEncoder::new();
+                let mf = REGISTRY.gather();
+                encoder.encode(&mf, &mut buf).unwrap();
+                ([("Content-Type", "text/plain; version=0.0.4")], buf)
+            }),
+        )
         .route("/v1/pair", post(pair))
         .route("/v1/record/start", post(record_start))
         .route("/v1/record/stop", post(record_stop))
@@ -93,8 +96,9 @@ pub async fn serve_http(addr: SocketAddr) {
             .fallback(tower_http::services::ServeFile::new(index_html));
         app = app.route_service(
             "/",
-            get_service(dir_service)
-                .handle_error(|_err| async move { (StatusCode::INTERNAL_SERVER_ERROR, "static error") }),
+            get_service(dir_service).handle_error(|_err| async move {
+                (StatusCode::INTERNAL_SERVER_ERROR, "static error")
+            }),
         );
     } else {
         app = app.route("/", get(desktop_interface));
@@ -108,7 +112,8 @@ pub async fn serve_http(addr: SocketAddr) {
 async fn desktop_interface() -> Html<&'static str> {
     HTTP_COUNTER.inc();
     // For now, return a simple message directing to the web client
-    Html(r#"
+    Html(
+        r#"
     <!DOCTYPE html>
     <html>
     <head>
@@ -140,7 +145,8 @@ async fn desktop_interface() -> Html<&'static str> {
         </div>
     </body>
     </html>
-    "#)
+    "#,
+    )
 }
 
 async fn pair(Json(_req): Json<PairReq>) -> impl IntoResponse {
@@ -164,7 +170,8 @@ async fn record_stop() -> impl IntoResponse {
     Json(serde_json::json!({ "ok": true }))
 }
 
-static SCREENSHOT_STORE: Lazy<std::sync::Mutex<std::collections::HashMap<String, Vec<u8>>>> = Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+static SCREENSHOT_STORE: Lazy<std::sync::Mutex<std::collections::HashMap<String, Vec<u8>>>> =
+    Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
 
 async fn capture_screenshot() -> Response {
     HTTP_COUNTER.inc();
@@ -214,10 +221,11 @@ async fn get_image(Path(image_id): Path<String>) -> Response {
     HTTP_COUNTER.inc();
     if let Ok(store) = SCREENSHOT_STORE.lock() {
         if let Some(bytes) = store.get(&image_id) {
-            return ([
-                ("Content-Type", "image/png"),
-                ("Cache-Control", "no-store"),
-            ], bytes.clone()).into_response();
+            return (
+                [("Content-Type", "image/png"), ("Cache-Control", "no-store")],
+                bytes.clone(),
+            )
+                .into_response();
         }
     }
     (StatusCode::NOT_FOUND, "image not found").into_response()
@@ -234,5 +242,3 @@ async fn list_audio_devices() -> impl IntoResponse {
         Err(_e) => (StatusCode::INTERNAL_SERVER_ERROR, "list devices failed").into_response(),
     }
 }
-
-
