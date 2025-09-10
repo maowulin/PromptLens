@@ -11,16 +11,10 @@ export default function DesktopApp() {
   const [isConnected, setIsConnected] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
-  const [sampleRate, setSampleRate] = useState('44100')
   const [logs, setLogs] = useState<string[]>(['Desktop mode ready'])
   const [audioDevices, setAudioDevices] = useState<AudioDevices | null>(null)
   const [selectedInputId, setSelectedInputId] = useState('')
   const [selectedOutputId, setSelectedOutputId] = useState('')
-
-  // Source toggle: desktop service vs browser mic
-  const [audioSource, setAudioSource] = useState<'desktop' | 'browser'>('desktop')
-  const [browserStream, setBrowserStream] = useState<MediaStream | null>(null)
-  const [browserRecorder, setBrowserRecorder] = useState<MediaRecorder | null>(null)
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString()
@@ -55,9 +49,9 @@ export default function DesktopApp() {
     }
   }, [isRecording])
 
-  // Load devices only when using desktop service and connected
+  // Load devices when connected
   useEffect(() => {
-    if (!isConnected || audioSource !== 'desktop') return
+    if (!isConnected) return
     ;(async () => {
       try {
         const devs = await api.getAudioDevices()
@@ -71,64 +65,22 @@ export default function DesktopApp() {
         addLog('Failed to load audio devices')
       }
     })()
-  }, [isConnected, audioSource])
-
-  // Cleanup browser stream on unmount
-  useEffect(() => {
-    return () => {
-      try {
-        browserRecorder?.stop()
-      } catch {}
-      browserStream?.getTracks().forEach(t => t.stop())
-    }
-  }, [browserRecorder, browserStream])
+  }, [isConnected])
 
   const handleStartRecording = async () => {
-    if (audioSource === 'browser') {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const rec = new MediaRecorder(stream)
-        rec.ondataavailable = () => { /* TODO: stream to ASR */ }
-        rec.start(1000) // capture chunks every second
-        setBrowserStream(stream)
-        setBrowserRecorder(rec)
-        setIsRecording(true)
-        addLog('Started browser microphone capture')
-      } catch (e) {
-        addLog(`Failed to start browser capture: ${e}`)
-      }
-      return
-    }
-
     try {
       await api.startRecording({
-        sampleRate: parseInt(sampleRate),
         inputDeviceId: selectedInputId || undefined,
         outputDeviceId: selectedOutputId || undefined,
-        source: 'desktop',
       })
       setIsRecording(true)
-      addLog(`Started recording at ${sampleRate} Hz (in=${selectedInputId || 'default'}, out=${selectedOutputId || 'default'})`)
+      addLog(`Started recording (in=${selectedInputId || 'default'}, out=${selectedOutputId || 'default'})`)
     } catch (e) {
       addLog(`Failed to start recording: ${e}`)
     }
   }
 
   const handleStopRecording = async () => {
-    if (audioSource === 'browser') {
-      try {
-        if (browserRecorder && browserRecorder.state !== 'inactive') {
-          browserRecorder.stop()
-        }
-      } catch {}
-      browserStream?.getTracks().forEach(t => t.stop())
-      setBrowserRecorder(null)
-      setBrowserStream(null)
-      setIsRecording(false)
-      addLog(`Stopped browser microphone capture after ${formatTime(recordingTime)}`)
-      return
-    }
-
     try {
       await api.stopRecording()
       setIsRecording(false)
@@ -174,7 +126,7 @@ export default function DesktopApp() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center"><Mic className="mr-2 h-5 w-5" />Audio Recording</CardTitle>
-                <CardDescription>Record audio through the desktop service or browser microphone</CardDescription>
+                <CardDescription>Record audio through the desktop service</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-center p-4 bg-muted rounded-lg">
@@ -188,32 +140,10 @@ export default function DesktopApp() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Audio Source</label>
-                    <Select value={audioSource} onValueChange={(v: 'desktop' | 'browser') => setAudioSource(v)}>
-                      <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="desktop">Desktop Service</SelectItem>
-                        <SelectItem value="browser">Browser (Microphone)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Sample Rate</label>
-                    <Select value={sampleRate} onValueChange={setSampleRate}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="16000">16 kHz</SelectItem>
-                        <SelectItem value="22050">22.05 kHz</SelectItem>
-                        <SelectItem value="44100">44.1 kHz</SelectItem>
-                        <SelectItem value="48000">48 kHz</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Output Device (Desktop)</label>
-                    <Select value={selectedOutputId} onValueChange={setSelectedOutputId} disabled={!isConnected || audioSource !== 'desktop' || !audioDevices || audioDevices.outputs.length === 0}>
+                    <Select value={selectedOutputId} onValueChange={setSelectedOutputId} disabled={!isConnected || !audioDevices || audioDevices.outputs.length === 0}>
                       <SelectTrigger><SelectValue placeholder="Select output device" /></SelectTrigger>
                       <SelectContent>
                         {audioDevices?.outputs.map((d) => (
@@ -222,12 +152,9 @@ export default function DesktopApp() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Input Device (Desktop)</label>
-                    <Select value={selectedInputId} onValueChange={setSelectedInputId} disabled={!isConnected || audioSource !== 'desktop' || !audioDevices || audioDevices.inputs.length === 0}>
+                    <Select value={selectedInputId} onValueChange={setSelectedInputId} disabled={!isConnected || !audioDevices || audioDevices.inputs.length === 0}>
                       <SelectTrigger><SelectValue placeholder="Select input device" /></SelectTrigger>
                       <SelectContent>
                         {audioDevices?.inputs.map((d) => (
@@ -239,7 +166,7 @@ export default function DesktopApp() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button onClick={handleStartRecording} disabled={isRecording || (audioSource === 'desktop' && !isConnected)} className="flex-1" size="lg">
+                  <Button onClick={handleStartRecording} disabled={isRecording || !isConnected} className="flex-1" size="lg">
                     <Mic className="mr-2 h-4 w-4" />Start Recording
                   </Button>
                   <Button onClick={handleStopRecording} disabled={!isRecording} variant="destructive" className="flex-1" size="lg">
