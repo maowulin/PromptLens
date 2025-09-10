@@ -31,7 +31,7 @@ jobs:
           projectPath: apps/desktop/tauri-app
           tauriScript: pnpm tauri
           args: build
-          beforeBuildCommand: pnpm -C apps/desktop/tauri-app/web i && pnpm -C apps/desktop/tauri-app/web build
+          beforeBuildCommand: pnpm -C apps/web-client i && pnpm -C apps/web-client build:desktop
 
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4

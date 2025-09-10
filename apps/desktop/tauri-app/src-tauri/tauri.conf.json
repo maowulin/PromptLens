@@ -6,7 +6,7 @@
   "build": {
     "beforeBuildCommand": "pnpm -C ../../web-client build:desktop",
     "frontendDist": "../../web-client/dist",
-    "devUrl": "http://127.0.0.1:5173/desktop.html"
+    "devUrl": "http://127.0.0.1:5174"
   },
   "app": {
     "windows": [
