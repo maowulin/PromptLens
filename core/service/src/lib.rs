@@ -14,13 +14,9 @@ use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
-#[derive(Debug, Serialize)]
-struct HealthResp {
-    ok: bool,
-}
-
 #[derive(Debug, Deserialize)]
 struct PairReq {
+    #[allow(dead_code)]
     pair_token: String,
 }
 
@@ -181,8 +177,8 @@ async fn capture_screenshot() -> Response {
             if let Some(primary) = displays.first() {
                 if let Ok(capture) = primary.capture() {
                     if let Some(img) = image::RgbaImage::from_raw(
-                        capture.width() as u32,
-                        capture.height() as u32,
+                        capture.width(),
+                        capture.height(),
                         capture.to_vec(),
                     ) {
                         let mut out = Vec::new();
