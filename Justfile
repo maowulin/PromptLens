@@ -104,12 +104,15 @@ install-system-deps:
             curl \
             wget \
             file \
+            pkg-config \
+            patchelf \
             libssl-dev \
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libwebkit2gtk-4.1-dev \
-            libjavascriptcoregtk-4.1-dev
+            libjavascriptcoregtk-4.1-dev \
+            libasound2-dev
         echo "✅ System dependencies installed"
     else
         echo "⚠️  apt not found. Please install system dependencies manually:"
