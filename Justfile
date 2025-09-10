@@ -81,10 +81,45 @@ clean:
 
 # Install dependencies
 install:
+    #!/usr/bin/env bash
+    echo "📦 Installing project dependencies..."
     cargo build --workspace
-    cd apps/desktop/tauri-app/web && npm install
-    cd apps/mobile/flutter-app && flutter pub get
-    cd apps/web-client && pnpm install
+    (cd apps/desktop/tauri-app/web && npm install)
+    if command -v flutter > /dev/null; then
+        (cd apps/mobile/flutter-app && flutter pub get)
+    else
+        echo "⚠️  Flutter not found, skipping Flutter dependencies"
+    fi
+    (cd apps/web-client && pnpm install)
+    echo "✅ Project dependencies installed"
+
+# Install system dependencies (Ubuntu/Debian)
+install-system-deps:
+    #!/usr/bin/env bash
+    echo "📦 Installing system dependencies..."
+    if command -v apt > /dev/null; then
+        sudo apt update
+        sudo apt install -y \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libwebkit2gtk-4.1-dev \
+            libjavascriptcoregtk-4.1-dev
+        echo "✅ System dependencies installed"
+    else
+        echo "⚠️  apt not found. Please install system dependencies manually:"
+        echo "   - build-essential, curl, wget, file"
+        echo "   - libssl-dev, libgtk-3-dev, libayatana-appindicator3-dev"
+        echo "   - librsvg2-dev, libwebkit2gtk-4.1-dev, libjavascriptcoregtk-4.1-dev"
+    fi
+
+# Install all dependencies (system + project)
+install-all: install-system-deps install
 
 # Show help
 default:
@@ -103,7 +138,9 @@ default:
     @echo "  lint         - Lint all code"
     @echo "  test         - Run all tests"
     @echo "  clean        - Clean build artifacts"
-    @echo "  install      - Install dependencies"
+    @echo "  install      - Install project dependencies"
+    @echo "  install-system-deps - Install system dependencies (Ubuntu/Debian)"
+    @echo "  install-all  - Install all dependencies (system + project)"
     @echo "  run-service  - Run service in foreground"
 
 

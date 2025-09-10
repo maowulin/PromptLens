@@ -41,12 +41,42 @@ For detailed architecture, see ARCHITECTURE.md and docs/ARCHITECTURE.md.
 - Flutter SDK (optional, only if you plan to work on mobile)
 - Tauri platform prerequisites (install per your OS)
 
-### One-command dev (recommended)
+### One-Click Installation (recommended)
 
-The project uses a Justfile to standardize tasks. If you have `just` installed, you can:
+For the easiest setup experience, use our one-click installation script:
 
+```bash
+# Clone the repository
+git clone <repository-url>
+cd PromptLens
+
+# One-click install (installs system dependencies + project dependencies)
+./scripts/install.sh
 ```
-pnpm start          # Interactive platform selection
+
+### Manual Installation
+
+If you prefer manual control, the project uses a Justfile to standardize tasks:
+
+```bash
+# Install just command runner (if not already installed)
+cargo install just
+# or: sudo apt install just
+
+# Install all dependencies (system + project)
+just install-all
+
+# Or install separately:
+just install-system-deps    # System dependencies (Ubuntu/Debian)
+just install                 # Project dependencies only
+```
+
+### Development Commands
+
+```bash
+just dev            # Interactive platform selection
+just build          # Build all components
+just --list         # Show all available commands
 ```
 
 ### Build, Test, Lint, Format
