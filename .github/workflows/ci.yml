@@ -25,8 +25,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
       - run: corepack enable
+      - run: corepack prepare pnpm@latest --activate
       - run: pnpm -v
       - run: pnpm --prefix apps/web-client i
       - run: pnpm --prefix apps/web-client build:desktop
