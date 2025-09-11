@@ -1,0 +1,11 @@
+# Ignore everything in this folder except core icons
+*
+!.gitignore
+!icon.png
+!icon.ico
+!icon.icns
+!Square*.png
+
+# Always ignore generated platform icon folders
+android/
+ios/
