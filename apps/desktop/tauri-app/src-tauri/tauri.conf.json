@@ -6,7 +6,7 @@
   "build": {
     "beforeBuildCommand": "",
     "frontendDist": "../../../web-client/dist",
-    "devUrl": "http://127.0.0.1:5174"
+    "devUrl": "http://127.0.0.1:5173"
   },
   "app": {
     "windows": [
