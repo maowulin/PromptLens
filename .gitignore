@@ -53,3 +53,4 @@ apps/desktop/tauri-app/src-tauri/gen/
 .env
 logs/
 .history
+.claude
