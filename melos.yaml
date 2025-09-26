@@ -1,9 +1,9 @@
 name: promptlens
 packages:
-  - "apps/mobile/flutter-app"
+  - "core/*"
 command:
   bootstrap:
     usePubspecOverrides: true
 scripts:
-  build: "flutter build apk --release"
-  analyze: "flutter analyze"
+  build: "echo 'No mobile build needed - using Tauri for all platforms'"
+  analyze: "echo 'No mobile analysis needed - using Tauri for all platforms'"

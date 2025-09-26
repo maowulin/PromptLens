@@ -12,32 +12,27 @@ bundle-desktop:
     cd apps/desktop/tauri-app/web && pnpm install && pnpm build
     cd apps/desktop/tauri-app && pnpm tauri build
 
-# Build mobile Flutter app
+# Build mobile app (now using Tauri for all platforms)
 build-mobile:
-    cd apps/mobile/flutter-app && flutter build
+    @echo "📱 Mobile builds now handled by Tauri - use 'just build-desktop' for all platforms"
 
 # Build all components
 build: build-core build-desktop build-mobile
 
-# Format code
+# Format all code (Rust + web)
 fmt:
     cargo fmt --all
-    cd apps/desktop/tauri-app/web && npx prettier --write .
-    cd apps/mobile/flutter-app && flutter format .
-    cd apps/web-client && npx prettier --write .
+    cd apps/desktop/tauri-app && pnpm format
 
 # Lint code
 lint:
-    cargo clippy --workspace
-    cd apps/desktop/tauri-app/web && npx eslint .
-    cd apps/mobile/flutter-app && flutter analyze
-    cd apps/web-client && npx eslint . || true
+    cargo clippy --all-targets --all-features -- -D warnings
+    cd apps/desktop/tauri-app && pnpm lint
 
 # Run tests
 test:
     cargo test --workspace
     cd apps/desktop/tauri-app/web && npm test
-    cd apps/mobile/flutter-app && flutter test
     cd apps/web-client && npm test || true
 
 # Start development environment with platform selection
@@ -75,23 +70,13 @@ preview-web-client:
 # Clean build artifacts
 clean:
     cargo clean
-    cd apps/desktop/tauri-app/web && rm -rf node_modules dist
-    cd apps/mobile/flutter-app && flutter clean
-    cd apps/web-client && rm -rf node_modules dist || true
+    cd apps/desktop/tauri-app && pnpm clean || rm -rf dist target
 
 # Install dependencies
 install:
-    #!/usr/bin/env bash
-    echo "📦 Installing project dependencies..."
-    cargo build --workspace
-    (cd apps/desktop/tauri-app/web && npm install)
-    if command -v flutter > /dev/null; then
-        (cd apps/mobile/flutter-app && flutter pub get)
-    else
-        echo "⚠️  Flutter not found, skipping Flutter dependencies"
-    fi
-    (cd apps/web-client && pnpm install)
-    echo "✅ Project dependencies installed"
+    cargo fetch
+    cd apps/desktop/tauri-app && pnpm install
+    @echo "✅ All dependencies installed"
 
 # Install system dependencies (Ubuntu/Debian)
 install-system-deps:
@@ -136,7 +121,7 @@ default:
     @echo "  build-core   - Build Rust core crates"
     @echo "  build-desktop- Build Tauri desktop app"
     @echo "  bundle-desktop - Build desktop installers (web build + tauri build)"
-    @echo "  build-mobile - Build Flutter mobile app"
+    @echo "  build-mobile - Build mobile app (now using Tauri for all platforms)"
     @echo "  fmt          - Format all code"
     @echo "  lint         - Lint all code"
     @echo "  test         - Run all tests"

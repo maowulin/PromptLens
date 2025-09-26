@@ -15,7 +15,7 @@ This project follows a layered design: Desktop shell + Rust Core + Local Web Ser
   - Local Web Service (REST/WS/TLS with self-signed cert + fingerprint pinning)
   - Pairing & auth (mDNS/QR + short-lived token)
   - Storage (SQLite/SQLCipher)
-- Mobile (Flutter): Companion screen and remote control panel; can trigger screenshots and view results.
+- Mobile (Tauri): Companion screen and remote control panel; can trigger screenshots and view results.
 - Shared: OpenAPI/Proto and UI tokens shared across apps.
 
 ```mermaid
@@ -38,7 +38,7 @@ flowchart LR
     SVC <---> DB
   end
 
-  subgraph Mobile[Flutter Companion]
+  subgraph Mobile[Tauri Companion]
     MUI[Companion UI]
   end
 

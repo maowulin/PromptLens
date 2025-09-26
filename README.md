@@ -2,11 +2,11 @@
 
 # PromptLens
 
-A multi-platform (Desktop via Tauri, Mobile via Flutter, and Web) human-in-the-loop observation and control panel. It focuses on real-time audio pipelines (for ASR), screen capture + OCR experiments, device pairing, and a local HTTP service to orchestrate multi-device workflows.
+A multi-platform (Desktop and Mobile via Tauri, and Web) human-in-the-loop observation and control panel. It focuses on real-time audio pipelines (for ASR), screen capture + OCR experiments, device pairing, and a local HTTP service to orchestrate multi-device workflows.
 
 - CI: GitHub Actions
 - License: MIT
-- Platforms: Rust · Tauri · Flutter · React
+- Platforms: Rust · Tauri · React
 
 ## Features
 
@@ -14,7 +14,7 @@ A multi-platform (Desktop via Tauri, Mobile via Flutter, and Web) human-in-the-l
 - Screen & OCR: screenshot capture and OCR experiment flow
 - Multi-device: browser client pairs with the desktop app over LAN
 - Modern Web UI: React + Tailwind + shadcn/ui
-- Polyglot Monorepo: Rust core service + Tauri desktop + Flutter mobile + Web client
+- Polyglot Monorepo: Rust core service + Tauri desktop/mobile + Web client
 
 ## Repository Layout
 
@@ -22,7 +22,7 @@ A multi-platform (Desktop via Tauri, Mobile via Flutter, and Web) human-in-the-l
 core/            # Rust crates: audio, capture, asr, ocr, service, storage
 apps/
   desktop/       # Tauri desktop app
-  mobile/        # Flutter mobile app
+  mobile/        # Tauri mobile app (coming soon)
   web-client/    # Web client (Vite + React)
 shared/
   proto/         # OpenAPI / schemas
@@ -38,8 +38,7 @@ For detailed architecture, see ARCHITECTURE.md and docs/ARCHITECTURE.md.
 
 - Rust stable toolchain
 - Node.js and pnpm (for the web client)
-- Flutter SDK (optional, only if you plan to work on mobile)
-- Tauri platform prerequisites (install per your OS)
+- (Optional) Platform-specific dependencies for Tauri
 
 ### One-Click Installation (recommended)
 

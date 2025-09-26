@@ -14,7 +14,7 @@ PromptLens is a Rust-based application with multi-platform support. The project 
 
 - **Applications**:
   - `apps/desktop/tauri-app`: Native desktop app using Tauri framework
-  - `apps/mobile/flutter-app`: Mobile app using Flutter (Android/iOS)
+  - `apps/mobile`: Mobile app using Tauri (Android/iOS - coming soon)
 
 The core service (`core/service/src/lib.rs`) provides an HTTP API with endpoints for pairing, recording, and screen capture. The Tauri desktop app serves as both a native wrapper and embeds the web interface.
 
@@ -39,10 +39,10 @@ just build
 # Build specific targets
 just build-core      # Core Rust crates
 just build-desktop   # Tauri desktop app
-just build-mobile    # Flutter mobile app
+just build-mobile    # Mobile app (now using Tauri for all platforms)
 
 # Code quality
-just fmt    # Format all code (Rust + web + Flutter)
+just fmt    # Format all code (Rust + web)
 just lint   # Lint all code
 just test   # Run all tests
 
@@ -66,7 +66,6 @@ When working in WSL, follow these guidelines from `.cursorrules`:
 
 - **Rust**: Cargo workspace with shared dependencies defined in root `Cargo.toml`
 - **Web**: Minimal setup with Tauri integration, uses `package.json` for Tauri CLI
-- **Flutter**: Standard Flutter project structure with `pubspec.yaml`
 
 The service runs on `http://127.0.0.1:48080` by default with health endpoints at `/health`, `/readyz`, `/livez` and metrics at `/metrics`.
 

@@ -48,14 +48,8 @@ echo "🖥️  Applications:"
 if [ -f "$PROJECT_ROOT/apps/desktop/tauri-app/src-tauri/Cargo.toml" ]; then
     echo "  ✅ Tauri Desktop"
 else
-    echo "  ❌ Tauri Desktop"
-fi
-
-if [ -f "$PROJECT_ROOT/apps/mobile/flutter-app/pubspec.yaml" ]; then
-    echo "  ✅ Flutter Mobile"
-else
-    echo "  ❌ Flutter Mobile"
-fi
+    echo "📱 Mobile Apps:"
+echo "  🚧 Tauri Mobile (coming soon)"
 
 # Quick actions
 echo ""

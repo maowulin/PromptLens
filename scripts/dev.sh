@@ -15,13 +15,6 @@ stop_dev_environment() {
         echo "ℹ️  Tauri service not running"
     fi
     
-    # Stop Flutter processes
-    if pgrep -f "flutter" > /dev/null; then
-        echo "🔄 Stopping Flutter processes..."
-        pkill -f "flutter" || true
-        echo "✅ Flutter processes stopped"
-    fi
-    
     # Stop any remaining cargo processes
     if pgrep -f "cargo run" > /dev/null; then
         echo "🔄 Stopping cargo processes..."
@@ -54,11 +47,11 @@ show_platform_menu() {
     echo ""
     echo "🎯 Select platform to start:"
     echo "1) Linux Desktop (Tauri)"
-    echo "2) Linux Mobile (Flutter)"
+    echo "2) Linux Mobile (Tauri - coming soon)"
     echo "3) Windows Desktop (Tauri)"
     echo "4) macOS Desktop (Tauri)"
-    echo "5) Android (Flutter)"
-    echo "6) iOS (Flutter)"
+    echo "5) Android (Tauri - coming soon)"
+    echo "6) iOS (Tauri - coming soon)"
     echo "7) Exit"
     echo ""
     read -p "Enter your choice (1-7): " choice
@@ -103,39 +96,13 @@ start_linux_desktop() {
     # The user will see a native Linux desktop window
 }
 
-# Function to start Linux Mobile (Flutter)
+# Function to start Linux Mobile (Tauri - coming soon)
 start_linux_mobile() {
-    echo "📱 Starting Linux Mobile (Flutter)..."
-    
-    # Check if Flutter is installed
-    if ! command -v flutter > /dev/null; then
-        echo "❌ Flutter not installed. Please install Flutter first."
-        echo "💡 Visit: https://flutter.dev/docs/get-started/install/linux"
-        exit 1
-    fi
-    
-    # Change to Flutter app directory
-    cd apps/mobile/flutter-app
-    
-    # Check if dependencies are installed
-    if [ ! -d ".dart_tool" ]; then
-        echo "📦 Installing Flutter dependencies..."
-        flutter pub get
-    fi
-    
-    # Start Flutter app in development mode
-    echo "🚀 Starting Flutter app in development mode..."
-    echo "💡 This will open Flutter DevTools and start the app"
-    
-    # Check if running in WSL with GUI support
-    if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
-        echo "✅ GUI environment detected, starting Flutter app..."
-        flutter run -d linux
-    else
-        echo "⚠️  No GUI environment detected. Running in headless mode..."
-        echo "💡 To run with GUI, ensure X11 forwarding is enabled or use WSLg"
-        flutter run -d linux --headless
-    fi
+    echo "📱 Linux Mobile (Tauri) - Coming Soon"
+    echo "🚧 Tauri mobile support is being implemented"
+    echo "💡 For now, use the desktop version or web client"
+    echo ""
+    read -p "Press Enter to return to menu..."
 }
 
 # Function to start Windows Desktop (Tauri)
@@ -152,18 +119,22 @@ start_macos_desktop() {
     echo "🔧 For now, you can use the Linux Desktop option"
 }
 
-# Function to start Android (Flutter)
+# Function to start Android (Tauri - coming soon)
 start_android() {
-    echo "🤖 Android (Flutter) - Not implemented yet"
-    echo "💡 This feature will be available when Android SDK is configured"
-    echo "🔧 For now, you can use the Linux Mobile option"
+    echo "🤖 Android (Tauri) - Coming Soon"
+    echo "🚧 Tauri Android support is being implemented"
+    echo "💡 For now, use the desktop version or web client"
+    echo ""
+    read -p "Press Enter to return to menu..."
 }
 
-# Function to start iOS (Flutter)
+# Function to start iOS (Tauri - coming soon)
 start_ios() {
-    echo "🍎 iOS (Flutter) - Not implemented yet"
-    echo "💡 This feature will be available when Xcode is configured"
-    echo "🔧 For now, you can use the Linux Mobile option"
+    echo "🍎 iOS (Tauri) - Coming Soon"
+    echo "🚧 Tauri iOS support is being implemented"
+    echo "💡 For now, use the desktop version or web client"
+    echo ""
+    read -p "Press Enter to return to menu..."
 }
 
 # Main script logic

@@ -15,7 +15,7 @@
   - 本地 Web 服务（REST/WS/TLS，自签证书 + 指纹固定）
   - 配对与鉴权（mDNS/二维码 + 短期 Token）
   - 存储（SQLite/SQLCipher）
-- Mobile（Flutter）：伴侣屏与远程控制面板，触发截屏/查看结果。
+- Mobile（Tauri）：伴侣屏与远程控制面板，触发截屏/查看结果。
 - Shared：OpenAPI/Proto、UI tokens 等共享规范与资源。
 
 ```mermaid
@@ -38,7 +38,7 @@ flowchart LR
     SVC <---> DB
   end
 
-  subgraph Mobile[Flutter 伴侣]
+  subgraph Mobile[Tauri 伴侣]
     MUI[Companion UI]
   end
 

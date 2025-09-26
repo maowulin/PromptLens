@@ -20,7 +20,7 @@
   - 外壳：Tauri（前端：React / Vue / Svelte 任一）。
   - 核心：Rust（音频/截屏/本地服务/加密/管线）。
 - 移动端（Android/iOS）
-  - 外壳：Flutter（伴侣屏 + 控制面板）。
+  - 外壳：Tauri 2.0（伴侣屏 + 控制面板，与桌面端共享代码库）。
 - 云端（可选增强）
   - 模型代理/计费/同步：Rust/Go + Postgres。
   - 对象存储（可选）。
@@ -62,7 +62,7 @@ graph TD
     CFG[Settings/Policy]
   end
 
-  subgraph Mobile App (Flutter)
+  subgraph Mobile App (Tauri)
     MUI[Companion UI]
   end
 
@@ -129,7 +129,7 @@ graph TD
 - 更新与签名
   - 自动更新（Tauri 内置），代码签名（Win/MSIX、macOS/Notarization）。
 
-## 7. 移动端（Flutter）
+## 7. 移动端（Tauri 2.0）
 
 - 伴侣屏
   - 实时字幕/翻译流、建议卡片、历史回放。
@@ -137,6 +137,8 @@ graph TD
   - 触发截屏、查看截屏结果、结构化答案。
 - 配对与安全
   - 扫码、TLS 指纹校验、权限受控。
+- 代码复用
+  - 与桌面端共享前端代码库，统一开发体验。
 
 ## 8. 数据流与时序
 
@@ -267,7 +269,7 @@ sequenceDiagram
 
 - Rust：`cpal`, `webrtc-vad`, `onnxruntime`, `whisper-rs`/`faster-whisper` binding, `image`/`webp`, `axum`, `tokio`, `rustls`, `rcgen`, `mdns`, `serde`, `sqlx`/`rusqlite`。
 - Tauri：`@tauri-apps/cli`，前端任选 React/Vue/Svelte + 状态管理（Redux/Pinia/Signals）。
-- Flutter：`web_socket_channel`, `qr_flutter`, `flutter_secure_storage`。
+- Tauri：`web_socket_channel`, `qr_code`, `secure_storage`。
 
 ## 17. 参考
 
@@ -284,7 +286,7 @@ sequenceDiagram
 ### 18.2 单仓的优势/劣势
 
 - 优势
-  - **跨模块重构快**：Rust 核心、Tauri、Flutter 同步演进；一体化 PR/Review。
+  - **跨模块重构快**：Rust 核心、Tauri 桌面/移动端同步演进；一体化 PR/Review。
   - **统一版本与接口**：OpenAPI/Proto 在一个地方改，所有消费者同版本更新。
   - **一套 CI/CD 与缓存**：依赖缓存更高效；任务编排统一（just/melos/pnpm）。
 - 劣势
@@ -307,7 +309,7 @@ repo/
     asr/
     ocr/
     service/                 # 本地 axum 服务（LAN/WS/TLS）
-    ffi/                     # Flutter/Tauri FFI/bridge
+    ffi/                     # Tauri FFI/bridge
     Cargo.toml               # workspace member
   apps/
     desktop/
@@ -316,7 +318,7 @@ repo/
         web/                 # 前端（React/Vue/Svelte）
         package.json
     mobile/
-      flutter-app/
+      tauri-app/
         lib/
         android/
         ios/
@@ -335,7 +337,7 @@ repo/
     ARCHITECTURE.md
   Cargo.toml                 # [workspace] 根（Rust）
   pnpm-workspace.yaml        # JS 前端工作区
-  melos.yaml                 # Flutter 多包/任务编排
+  melos.yaml                 # 多包/任务编排
   Justfile                   # 任务编排（或 Makefile）
 ```
 
@@ -364,18 +366,18 @@ packages:
   - "shared/*"
 ```
 
-- Melos（Flutter 多包与任务）（`melos.yaml`）
+- Melos（多包与任务）（`melos.yaml`）
 
 ```yaml
 name: project
 packages:
-  - "apps/mobile/flutter-app"
+  - "apps/mobile/tauri-app"
 command:
   bootstrap:
     usePubspecOverrides: true
 scripts:
-  build: "flutter build apk --release"
-  analyze: "flutter analyze"
+  build: "tauri build --target mobile"
+    analyze: "tauri info"
 ```
 
 - Justfile（跨语言任务）
@@ -391,14 +393,14 @@ build-desktop:
     cd apps/desktop/tauri-app && pnpm tauri build
 
 build-mobile:
-    cd apps/mobile/flutter-app && flutter build apk --release
+    cd apps/mobile/tauri-app && tauri build --target mobile
 ```
 
 ### 18.6 CI/CD 策略（GitHub Actions 思路）
 
 - 触发器：按路径过滤（core/**、apps/desktop/**、apps/mobile/**、shared/**）。
-- 构建矩阵：Rust（win/mac/linux）、Tauri（win/mac/linux）、Flutter（android；iOS 走专用 runner）。
-- 缓存：`actions/setup-node` + pnpm 缓存、`actions-rs/cargo` + cargo 缓存、Flutter 缓存。
+- 构建矩阵：Rust（win/mac/linux）、Tauri（win/mac/linux/android/ios）。
+- 缓存：`actions/setup-node` + pnpm 缓存、`actions-rs/cargo` + cargo 缓存、Tauri 缓存。
 - 发布：
   - Core：用 `cargo-release`，Tag 格式 `core-vX.Y.Z`。
   - Desktop：`tauri-action` 产出安装包，Tag `desktop-vX.Y.Z`。
@@ -430,7 +432,7 @@ build-mobile:
 ### 19.1 仓库与工作方式（面向一人团队）
 
 - 采用单仓（Polyglot Monorepo）：降低上下游协作成本与版本管理负担；根目录统一脚本（Justfile）与 CI。
-- 代码结构即第 18 节所示；核心（Rust）与桌面（Tauri）先跑通，移动端（Flutter）延后为观测/控制伴侣。
+- 代码结构即第 18 节所示；核心（Rust）与桌面（Tauri）先跑通，移动端（Tauri）延后为观测/控制伴侣。
 - 开发节奏：Weekly Milestone + 每周 Demo（录屏 2 分钟）。
 
 ### 19.2 MVP（2–3 周可上线的最小可售版本）

@@ -5,7 +5,7 @@
 一个专注“本地优先 + 局域网伴侣屏”的开放项目：
 - 桌面端（Tauri）提供实时字幕、翻译、按需截屏 + OCR + 建议卡片
 - Rust Core 负责音频采集/VAD、ASR 适配、本地 Web 服务（REST/WS/TLS）
-- 移动端（Flutter）作为伴侣屏与远程控制面板
+- 移动端（Tauri）作为伴侣屏与远程控制面板
 
 > 目标：隐私与合规优先，默认本地运行，可选连接云端模型。
 
@@ -16,7 +16,7 @@
 - 本地数据存储（SQLite/SQLCipher，可导出 Markdown/PDF）
 
 ## 快速开始
-要求：Rust、Node.js + pnpm、（可选）Flutter
+要求：Rust、Node.js + pnpm、（可选）Tauri 平台依赖
 
 常用命令（根目录运行）：
 - 构建：`just build` 或 `just build-core`/`just build-desktop`

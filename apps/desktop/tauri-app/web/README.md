@@ -101,7 +101,7 @@ A modern, clean desktop interface for the PromptLens AI-powered audio & visual i
 
 ## 📱 Mobile Companion
 
-This desktop interface works alongside the Flutter mobile app for a complete cross-platform experience.
+This desktop interface works alongside the Tauri mobile app for a complete cross-platform experience.
 
 ---
 

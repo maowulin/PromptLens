@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 PromptLens is a Rust-based polyglot monorepo with multi-platform support. The project uses a modular architecture with the following structure:
 
 - **Core Rust crates** (workspace members in `Cargo.toml`):
+
   - `core/audio`: Audio recording and processing with CPAL and WebRTC VAD
   - `core/capture`: Screen capture functionality using screenshots crate
   - `core/asr`: Automatic speech recognition pipelines
@@ -15,11 +16,9 @@ PromptLens is a Rust-based polyglot monorepo with multi-platform support. The pr
   - `core/storage`: Data persistence layer with SQLx/SQLite
 
 - **Applications**:
+
   - `apps/desktop/tauri-app`: Native desktop app using Tauri framework
-    - `src-tauri/`: Rust backend (workspace member)
-    - `web/`: React frontend for Tauri
-  - `apps/mobile/flutter-app`: Mobile app using Flutter (Android/iOS)
-  - `apps/web-client/`: Standalone web client (Vite + React + Tailwind + shadcn/ui)
+  - `apps/mobile`: Mobile app using Tauri (Android/iOS - coming soon)
 
 - **Shared components**:
   - `shared/proto/`: OpenAPI schemas and protocol definitions
@@ -65,13 +64,25 @@ just install-system-deps # Install system dependencies (Ubuntu/Debian)
 just install-all       # Install all dependencies (system + project)
 just clean            # Clean build artifacts
 
-# Web Client Specific
-just preview-web-client # Preview web client on port 5173
+# Build specific targets
+just build-core      # Core Rust crates
+just build-desktop   # Tauri desktop app
+just build-mobile    # Mobile app (now using Tauri for all platforms)
+
+# Code quality
+just fmt    # Format all code (Rust + web)
+just lint   # Lint all code
+just test   # Run all tests
+
+# Dependencies and cleanup
+just install  # Install all dependencies
+just clean    # Clean build artifacts
 ```
 
 ## Service Endpoints
 
 The HTTP service runs on `http://127.0.0.1:48080` with:
+
 - Health checks: `/health`, `/readyz`, `/livez`
 - Metrics: `/metrics` (Prometheus format)
 - Main API endpoints for pairing, recording, and screen capture
@@ -86,6 +97,7 @@ The HTTP service runs on `http://127.0.0.1:48080` with:
 ## WSL Environment Considerations
 
 When working in WSL, follow guidelines from `.cursorrules`:
+
 - **Never use pipes (`|`) with long-running commands** - they can hang in WSL
 - **Prefer `just` commands** over direct terminal commands
 - **Use `pkill -f process_name`** to clean up before starting services
@@ -97,11 +109,16 @@ When working in WSL, follow guidelines from `.cursorrules`:
 - **Rust**: Cargo workspace with shared dependencies in root `Cargo.toml`
 - **Web**: Vite + React for web-client, integrated with Tauri for desktop
 - **Flutter**: Standard Flutter project structure
-- **Package management**: pnpm for web, cargo for Rust, pub for Flutter
+- # **Package management**: pnpm for web, cargo for Rust, pub for Flutter
+- **Rust**: Cargo workspace with shared dependencies defined in root `Cargo.toml`
+- **Web**: Minimal setup with Tauri integration, uses `package.json` for Tauri CLI
+
+The service runs on `http://127.0.0.1:48080` by default with health endpoints at `/health`, `/readyz`, `/livez` and metrics at `/metrics`.
 
 ## Service Architecture
 
 The HTTP service (`core/service`) uses:
+
 - Axum framework for HTTP handling with tower middleware
 - Prometheus metrics collection and exposure
 - CORS enabled for cross-origin requests from web clients
