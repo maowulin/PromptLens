@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.promptlens.desktop",
   "build": {
-    "beforeBuildCommand": "",
-    "frontendDist": "../../../web-client/dist",
+    "beforeBuildCommand": "pnpm -C ../../web-client build:desktop",
+    "frontendDist": "../../web-client/dist",
     "devUrl": "http://127.0.0.1:5173"
   },
   "app": {
