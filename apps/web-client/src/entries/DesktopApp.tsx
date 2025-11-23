@@ -3,9 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Mic, Circle, Wifi, WifiOff, Headphones } from 'lucide-react'
+import { Mic, Circle, Wifi, WifiOff, Headphones, ExternalLink } from 'lucide-react'
 import { api, type AudioDevices } from '@/lib/api'
 import { formatTime } from '@/lib/utils'
+import { invoke } from '@tauri-apps/api/core'
 
 export default function DesktopApp() {
   const [isConnected, setIsConnected] = useState(false)
@@ -90,6 +91,16 @@ export default function DesktopApp() {
     }
   }
 
+  const handleOpenInBrowser = async () => {
+    const url = api.getServerUrl()
+    try {
+      await invoke('open_in_browser', { url })
+      addLog(`Opened ${url} in default browser`)
+    } catch (e) {
+      addLog(`Failed to open browser: ${e}`)
+    }
+  }
+
   const serverUrl = api.getServerUrl()
 
   return (
@@ -99,6 +110,10 @@ export default function DesktopApp() {
           <h1 className="text-lg font-semibold">🖥️ PromptLens Desktop</h1>
           <div className="flex items-center space-x-3">
             <div className="hidden md:block text-xs text-muted-foreground">Server: {serverUrl}</div>
+            <Button size="sm" variant="outline" onClick={handleOpenInBrowser}>
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Open in Browser
+            </Button>
             <Button size="sm" variant="secondary" onClick={doHealthCheck}>Retry</Button>
             {isConnected ? (
               <div className="flex items-center text-green-600 dark:text-green-400">

@@ -9,7 +9,7 @@
     "dev:desktop": "cross-env VITE_UI_TARGET=desktop vite",
     "build": "tsc && vite build",
     "build:web": "cross-env VITE_UI_TARGET=web tsc && vite build",
-    "build:desktop": "cross-env VITE_UI_TARGET=desktop tsc && vite build",
+    "build:desktop": "cross-env VITE_UI_TARGET=desktop tsc && vite build && mv dist/desktop.html dist/index.html",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -23,7 +23,8 @@
     "clsx": "^2.0.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "lucide-react": "^0.263.1"
+    "lucide-react": "^0.263.1",
+    "@tauri-apps/api": "^2.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

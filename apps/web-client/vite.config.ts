@@ -9,8 +9,7 @@ const __dirname = path.dirname(__filename)
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  const target = (env.VITE_UI_TARGET || 'web').toLowerCase()
+  const target = (process.env.VITE_UI_TARGET || 'web').toLowerCase()
   const entry = target === 'desktop' ? 'desktop.html' : 'web.html'
 
   return {

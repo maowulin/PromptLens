@@ -1,5 +1,10 @@
 use tokio::time::Duration;
 
+#[tauri::command]
+fn open_in_browser(url: String) -> Result<(), String> {
+    open::that(&url).map_err(|e| format!("Failed to open browser: {}", e))
+}
+
 #[tokio::main]
 async fn main() {
     // Start HTTP server in background on all interfaces
@@ -18,6 +23,7 @@ async fn main() {
     println!("Access from other devices using your local IP address and port 48080");
 
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![open_in_browser])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
