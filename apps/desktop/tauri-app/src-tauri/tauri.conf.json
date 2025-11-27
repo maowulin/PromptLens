@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.promptlens.desktop",
   "build": {
-    "beforeBuildCommand": "pnpm -C ../../web-client build:desktop",
-    "frontendDist": "../../web-client/dist",
-    "devUrl": "http://127.0.0.1:5173"
+    "beforeDevCommand": "pnpm -C web dev",
+    "beforeBuildCommand": "pnpm -C web build",
+    "devUrl": "http://localhost:5174",
+    "frontendDist": "web/dist"
   },
   "app": {
     "windows": [

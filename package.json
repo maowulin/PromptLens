@@ -3,26 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@8.15.8",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
   "scripts": {
-    "build:core": "cargo build --workspace",
-    "build:web": "pnpm -C apps/web-client build",
-    "build:desktop:web": "pnpm -C apps/desktop/tauri-app/web build",
-    "build:desktop": "cargo build -p promptlens-tauri",
-    "build": "pnpm build:web && pnpm build:desktop:web && pnpm build:core && pnpm build:desktop",
-    "start:web": "pnpm -C apps/web-client dev --host 0.0.0.0 --port 5173 --strictPort",
-    "start:desktop": "nohup env RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri > logs/tauri.log 2>&1 &",
-    "start:service": "RUST_LOG=info cargo run -p promptlens-tauri --bin promptlens-tauri",
-    "start": "pnpm build:web && pnpm start:desktop",
-    "dev:desktop": "concurrently -k \"pnpm -C apps/web-client dev --host 127.0.0.1 --port 5173 --strictPort\" \"pnpm -C apps/desktop/tauri-app tauri dev\"",
-    "build:desktop:bundle": "pnpm -C apps/desktop/tauri-app tauri build",
-    "build:mobile": "echo 'Mobile builds now handled by Tauri - use npm run build:desktop'",
-    "fmt": "cargo fmt --all && pnpm -C apps/web-client prettier --write . && pnpm -C apps/desktop/tauri-app/web prettier --write .",
-    "lint": "cargo clippy --workspace && pnpm -C apps/web-client lint || true && pnpm -C apps/desktop/tauri-app/web lint || true",
-    "test": "cargo test --workspace && pnpm -C apps/web-client test || true && pnpm -C apps/desktop/tauri-app/web test || true",
-    "status": "./scripts/status.sh",
-    "stop": "./scripts/dev.sh stop"
+    "dev:web": "pnpm -C apps/web-client dev --host 0.0.0.0 --port 5173",
+    "dev:desktop": "pnpm -C apps/desktop/tauri-app tauri dev",
+    "build": "cargo build --workspace && pnpm -C apps/web-client build",
+    "bundle": "pnpm -C apps/desktop/tauri-app tauri build",
+    "fmt": "cargo fmt --all",
+    "lint": "cargo clippy --workspace",
+    "test": "cargo test --workspace"
   }
 }
